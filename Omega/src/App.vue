@@ -6,6 +6,7 @@
   }
 </script>
 <template>
+  <router-view> </router-view>
 {{ Test.name }} -- {{ Test.current}}
 <button @click="change">+</button>
 </template>
