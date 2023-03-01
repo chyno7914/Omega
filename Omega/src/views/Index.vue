@@ -1,11 +1,15 @@
 <template>
-5678
+  {{ Test.current }}
+  <button @click="change"></button>
 </template>
 
-<script setup lang='ts'>
-
+<script lang="ts" setup>
+import { useTESTStore } from '../store'
+const Test = useTESTStore()
+const change = () => {
+    Test.current++
+}
 </script>
 
-<style scoped lang="less">
-
+<style scoped>
 </style>

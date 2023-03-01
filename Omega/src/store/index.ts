@@ -7,10 +7,15 @@ export const useTESTStore = defineStore(Names.TEST,{
             name:'小满'
         }
     },
+    // state的值允许直接修改
+    //getters用于修饰数据
     getters:{
 
     },
     actions:{
-        
+        setCurrent() {
+            this.current = 1000
+        }
+        // 其他情况下可以使用Test.$patch 对store进行修改
     }
 })
