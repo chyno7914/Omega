@@ -1,5 +1,17 @@
 import {defineStore} from 'pinia'
-import {Names} from './store-name'
+import { Names } from './store-name'
+export const useKEYStore = defineStore(Names.KEY,{
+    state:()=> {
+        return {
+            token:''
+        }
+    },
+    // state的值允许直接修改
+    //getters用于修饰数据
+    getters:{
+
+    },
+})
 export const useTESTStore = defineStore(Names.TEST,{
     state:()=> {
         return {

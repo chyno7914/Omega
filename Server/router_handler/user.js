@@ -2,24 +2,39 @@ const db = require("../db/init");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const config = require("../config");
-exports.reguser = (req, res, next) => {
+exports.register = (req, res, next) => {
   const userinfo = req.body;
+  let tid = null;
   const sql = "select * from omega_users where username = ?";
   db.query(sql, [userinfo.username], (err, results) => {
     if (err) return next(err);
     if (results.length > 0) return next("用户名已存在");
-    userinfo.password = bcrypt.hashSync(userinfo.password, 10);
-    const sql = "insert into ev_users set ?";
-    db.query(
-      sql,
-      { username: userinfo.username, password: userinfo.password },
-      (err, results) => {
+    const sql = "select tid from omega_tower where tcode = ?";
+    db.query(sql, userinfo.tcode, (err, results) => {
+      if (userinfo.role) {
+        userinfo.sid = null;
         if (err) return next(err);
-        res.cc("注册成功", 0);
+        if (results.length == 0) return next("校验码错误");
+        tid = results[0].tid;
       }
-    );
+      userinfo.password = bcrypt.hashSync(userinfo.password, 10);
+      const sql = "insert into omega_users set ?";
+      db.query(
+        sql,
+        {
+          username: userinfo.username,
+          password: userinfo.password,
+          role: userinfo.role,
+          telephone: userinfo.telephone,
+          tid: tid,
+        },
+        (err, results) => {
+          if (err) return next(err);
+          res.cc("注册成功", 0);
+        }
+      );
+    });
   });
-  // res.cc('sd')
 };
 exports.login = (req, res, next) => {
   const userinfo = req.body;

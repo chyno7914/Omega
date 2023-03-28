@@ -11,15 +11,21 @@ const password = joi
   .pattern(/^[\S]{6,12}$/)
   .required()
   .error(new Error("密码不合法，请重新输入"));
-const passwordcheck = joi
-  .valid(joi.ref("password"))
-  .required()
-  .error(new Error("密码不一致，请重新输入"));
+const telephone = joi
+  .string()
+  .alphanum()
+  .max(11)
+  .min(11)
+  .error(new Error("手机号输入不合法，请重新输入"));
+const role = joi.number();
+const tcode = joi.string().min(0).allow(null);
 exports.reg_schema = {
   body: {
     username,
     password,
-    passwordcheck,
+    telephone,
+    role,
+    tcode,
   },
 };
 exports.login_schema = {

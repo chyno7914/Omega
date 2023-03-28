@@ -5,6 +5,7 @@ import { createPinia, PiniaPluginContext } from 'pinia'
 import ElementUi from 'element-plus'
 import router from './router'
 import 'element-plus/dist/index.css'
+import '@/api/user'
 type Options = {
     key?:string
 }
