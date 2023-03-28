@@ -2,6 +2,7 @@ const express = require("express");
 const app = express();
 const cors = require("cors");
 const userRouter = require("./router/user");
+const tokenRouter = require("./router/token");
 const expressJWT = require("express-jwt");
 const config = require("./config");
 app.use(cors());
@@ -21,8 +22,9 @@ app.use(
 );
 
 app.use("/api", userRouter);
+app.use(tokenRouter);
 app.use((err, req, res, next) => {
-  if (err.name == "UnanchorizedError") return res.cc("身份验证错误");
+  if (err.name == "UnauthorizedError") return res.cc("身份验证错误");
   return res.cc(err);
 });
 app.listen(3008, () => {

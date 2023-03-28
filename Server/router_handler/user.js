@@ -49,12 +49,18 @@ exports.login = (req, res, next) => {
     if (!compareResult) return next("密码错误");
     const user = { ...results[0], password: "", user_pic: "" };
     const tokenStr = jwt.sign(user, config.jwtSecretKey, {
-      expiresIn: "10h",
+      expiresIn: "30h",
     });
-    res.send({
-      status: 0,
-      message: "登录成功",
-      token: "Bearer " + tokenStr,
+    const sql =
+      "SELECT * FROM omega_route WHERE role IN (SELECT role FROM omega_users WHERE username = ?) or role is null Order By level";
+    db.query(sql, [userinfo.username], (err, results) => {
+      if (err) return next(err);
+      res.send({
+        status: 0,
+        message: "登录成功",
+        token: "Bearer " + tokenStr,
+        route: results,
+      });
     });
   });
 };

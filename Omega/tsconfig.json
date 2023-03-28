@@ -12,8 +12,44 @@
     "lib": ["ESNext", "DOM"],
     "skipLibCheck": true,
     "noEmit": true,
-    "forceConsistentCasingInFileNames":true
+    "forceConsistentCasingInFileNames":true,
+    "baseUrl": "./",
+    "suppressImplicitAnyIndexErrors": true,
+    "paths": {
+	  // 根据别名配置相关路径
+      "@/*": ["./src/*"],
+      "components/*": ["./src/components/*"],
+      "assets/*": ["./src/assets/*"],
+      "structure/*": ["./src/components/indexStructure/*"]
+
+    }
+    
   },
-  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue","src/shims .d.ts"],
-  "references": [{ "path": "./tsconfig.node.json" }]
+  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue","src/shims .d.ts", "src/permission.ts"],
+  "references": [{ "path": "./tsconfig.node.json" }],
+  // "suppressImplicitAnyIndexErrors": true
 }
+// {
+//   "compilerOptions": {
+//     "target": "esnext",
+//     "module": "esnext",
+//     "moduleResolution": "node",
+//     "strict": true,
+//     "jsx": "preserve",
+//     "sourceMap": true,
+//     "resolveJsonModule": true,
+//     "esModuleInterop": true,
+//     "lib": ["esnext", "dom"],
+//     "types": ["vite/client"],
+
+// 	// ++ 这里加上baseUrl 和 path即可 ++
+//     "baseUrl": "./",
+//     "paths": {
+// 	  // 根据别名配置相关路径
+//       "@utils/*": ["./src/utils/*"]
+//     }
+    
+//   },
+//   "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue"]
+// }
+
