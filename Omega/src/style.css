@@ -98,5 +98,24 @@ html,
 body,
 .app_container,
 .el-container{
-  height: 100vh;
+  height: 95vh;
+}
+body *::-webkit-scrollbar {
+  width: 6px;
+  height: 5px;
+}
+body *::-webkit-scrollbar-track {
+  background: #fff;
+  border-radius: 2px;
+}
+body *::-webkit-scrollbar-thumb {
+  background: rgb(205, 206, 206);
+
+  border-radius: 10px;
+}
+body *::-webkit-scrollbar-thumb:hover {
+  background: rgb(56, 176, 231);
+}
+body *::-webkit-scrollbar-corner {
+  background: #fff;
 }

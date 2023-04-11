@@ -15,8 +15,9 @@ declare module '@vue/runtime-core' {
     LoadingBar: typeof import('./src/components/generalComponent/loadingBar.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
-    TryRoot: typeof import('./src/components/indexStructure/indexMain/tryRoot.vue')['default']
+    TryRoot: typeof import('./src/components/indexStructure/indexMain/rest/tryRoot.vue')['default']
     Welcome: typeof import('./src/components/indexStructure/indexMain/welcome.vue')['default']
+    Register: typeof import('./src/components/indexStructure/indexMain/user/register.vue')['default']
   }
 }
 

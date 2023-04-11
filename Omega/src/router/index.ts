@@ -8,7 +8,7 @@ const router = createRouter({
         {
             path: '/sign',
             component: () => import('@/views/Login.vue'),
-            // alias:['/login','/Login','/reg','/Register'],
+            alias:['/login','/Login'],
         },
         // {
         //     path: '/',

@@ -9,7 +9,8 @@
           <indexAside></indexAside>
         </el-aside>
         <el-main>
-          <router-view></router-view>
+          <!-- <router-view></router-view> -->
+          <indexMain></indexMain>
         </el-main>
       </el-container>
     </el-container>
@@ -19,6 +20,7 @@
 <script lang="ts" setup>
 import indexHeader from "structure/indexHeader.vue";
 import indexAside from "structure/indexAside.vue";
+import indexMain from "structure/indexMain.vue";
 </script>
 
 <style scoped lang="less">
@@ -32,5 +34,8 @@ import indexAside from "structure/indexAside.vue";
   flex-grow: 1;
   margin: 0;
   padding: 0;
+}
+.el-aside {
+  width: 10%;
 }
 </style>

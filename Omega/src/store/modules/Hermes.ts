@@ -1,9 +1,9 @@
 import {defineStore} from 'pinia'
-import { Names, __piniaKey__ } from '../store-information'
-export const useAuroraStore = defineStore(Names.Aurora,{
+import { Names,__piniaKey__ } from '../store-information'
+export const useHermesStore = defineStore(Names.Hermes,{
     state:()=> {
         return {
-            
+            librakey:''
         }
     },
     // state的值允许直接修改

@@ -2,8 +2,10 @@ export const enum Names {
     TEST = 'TEST',
     Horkes = 'Horkes',
     Astraea = 'Astraea',
-    Aurora = 'Aurora',
-    Soteria = 'Soteria'
+    Zeus = 'Zeus',
+    Soteria = 'Soteria',
+    Demeter = 'Demeter',
+    Hermes = 'Hermes'
 }
 export const __piniaKey__ = 'Omega'
 export const a = () => {

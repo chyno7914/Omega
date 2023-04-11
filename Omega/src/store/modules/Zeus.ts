@@ -1,11 +1,13 @@
 import {defineStore} from 'pinia'
-import { Names,__piniaKey__ } from '../store-information'
-export const useHorkesStore = defineStore(Names.Horkes,{
+import { Names, __piniaKey__ } from '../store-information'
+export const useZeusStore = defineStore(Names.Zeus,{
     state:()=> {
         return {
             token: '',
             hasTokenFlag: false,
-            uid:-1
+            uid: -1,
+            username: '',
+            role: 0
         }
     },
     // state的值允许直接修改
@@ -13,9 +15,9 @@ export const useHorkesStore = defineStore(Names.Horkes,{
     getters:{
 
     },
-    persist: {
+        persist: {
   // 修改存储中使用的键名称，默认为当前 Store的 id
-        key: `${__piniaKey__}-${Names.Horkes}`,
+        key: `${__piniaKey__}-${Names.Zeus}`,
         // 修改为 sessionStorage，默认为 localStorage
     },
 })

@@ -1,7 +1,9 @@
 import {defineStore} from 'pinia'
+import internal from 'stream'
 import { Names, __piniaKey__ } from '../store-information'
+import { getCurrentInstance } from 'vue';
 const stars = await import("@/utils/routeGuide")
-interface Club {
+interface Club extends MenuList{
     path: string,
     name: string,
     alias: string,
@@ -13,6 +15,11 @@ interface Club {
     level: number,
     role:number
 }
+interface MenuList {
+    mid: number,
+    sign: string,
+    icon:string
+}
 export const useAstraeaStore = defineStore(Names.Astraea,{
     state:()=> {
         return {
@@ -20,7 +27,9 @@ export const useAstraeaStore = defineStore(Names.Astraea,{
             hasAccretionFlag: false,
             newAccretionCounter: 0,
             ...stars,
-            privilege:['/sign','/404']
+            privilege: ['/sign', '/404'],
+            menu: <Array<MenuList>>[],
+            instance:getCurrentInstance()
               // asyncRoute:this.route.map((item:any)=>{item.path})
         }
     },
@@ -29,7 +38,8 @@ export const useAstraeaStore = defineStore(Names.Astraea,{
     getters:{
         asyncRoute():any{
             return this.route.map((item:any)=>item.path)
-        }
+        },
+
     },
     actions:{
         stayRoute(path:string ):boolean {
@@ -59,14 +69,10 @@ export const useAstraeaStore = defineStore(Names.Astraea,{
                 redirect: route.redirect,
                 component: () => this[route.method](),
             }
+        },
+        retrieleaves(index:number):any{
+            return this.route.filter(item => item.mid==index)
         }
         // 其他情况下可以使用Test.$patch 对store进行修改
-    },
-    persist: {
-//   修改存储中使用的键名称，默认为当前 Store的 id
-        key: `${__piniaKey__}-${Names.Astraea}`,
-        // 修改为 sessionStorage，默认为 localStorage
-        // 部分持久化状态的点符号路径数组，[]意味着没有状态被持久化(默认为undefined，持久化整个状态)
-        paths: ['route'],
     },
 })

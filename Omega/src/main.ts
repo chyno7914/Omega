@@ -5,6 +5,7 @@ import { createPinia } from 'pinia'
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
 import ElementUi from 'element-plus'
 import router from './router'
+import installIcon from 'assets/icon'
 import 'element-plus/dist/index.css'
 import '@/api/user'
 import './permission'
@@ -14,6 +15,7 @@ store.use(piniaPluginPersistedstate)
 app.use(store)
 app.use(router)
 app.use(ElementUi)
+app.use(installIcon)
 app.mount('#app')
 // const __piniaKey__:string ="Chyno"
 // const setStorage = (key: string, value: any)=>{

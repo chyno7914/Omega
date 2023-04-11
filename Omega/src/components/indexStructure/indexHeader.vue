@@ -20,11 +20,11 @@
 <script setup lang="ts">
 import { reactive, toRefs } from "vue";
 import router from "@/router";
-import { useHorkesStore } from "@/store";
+import { useZeusStore } from "@/store";
 import { ElMessage } from "element-plus";
-const Horkes = useHorkesStore();
+const Zeus = useZeusStore();
 const outWeb = () => {
-  Horkes.token = "";
+  Zeus.token = "";
   router.push("/sign");
   ElMessage({
     message: "安全退出",

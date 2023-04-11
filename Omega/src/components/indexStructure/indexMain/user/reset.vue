@@ -1,41 +1,8 @@
 <template>
   <div class="box">
     <div class="Card">
-      <div class="card-head"></div>
       <div class="loginCard">
-        <el-card v-show="enterType">
-          <el-form
-            ref="loginFormRef"
-            v-show="regStatus == 1"
-            :model="loginForm"
-            label-width="100px"
-            :rules="rules"
-            class="demo-ruleForm"
-            status-icon
-            :hide-required-asterisk="true"
-          >
-            <el-form-item label="用户名：" prop="username">
-              <el-input v-model="loginForm.username" />
-            </el-form-item>
-            <el-form-item label="密码：" prop="password">
-              <el-input v-model="loginForm.password" type="password" />
-            </el-form-item>
-            <el-form-item>
-              <el-button type="primary" @click="submitLogin(loginFormRef)" round
-                >登录</el-button
-              >
-              <el-button @click="resetForm(loginFormRef)" round>重置</el-button>
-            </el-form-item>
-          </el-form>
-          <a
-            href="javascript:void(0);"
-            @click="enterChange(loginFormRef)"
-            v-show="enterType"
-          >
-            去注册->
-          </a>
-        </el-card>
-        <el-card v-show="!enterType">
+        <el-card>
           <el-form
             ref="regFormRef"
             :model="regForm"
@@ -45,30 +12,12 @@
             status-icon
             :hide-required-asterisk="true"
           >
-            <el-form-item label="权限" prop="role">
-              <el-select v-model="regForm.role" placeholder="请选择您的身份">
-                <el-option label="学生用户" value="0" />
-                <el-option label="管理员" value="1" />
-                <el-option label="超级管理员" value="2" />
-              </el-select>
-            </el-form-item>
-            <el-form-item label="用户名：" prop="username">
-              <el-input v-model="regForm.username" />
-            </el-form-item>
-            <el-form-item label="密码：" prop="password">
+            <el-form-item label="旧密码：" prop="password">
               <el-input v-model="regForm.password" type="password" />
             </el-form-item>
             <el-form-item label="确认密码：" prop="confirm">
               <el-input v-model="regForm.confirm" type="password" />
             </el-form-item>
-            <el-form-item label="联系方式：" prop="telephone">
-              <el-input v-model="regForm.telephone" />
-            </el-form-item>
-            <div v-show="!!Number(regForm.role)">
-              <el-form-item label="校验码：" prop="confirm">
-                <el-input v-model="regForm.tcode" />
-              </el-form-item>
-            </div>
 
             <el-form-item>
               <el-button type="primary" @click="submitReg(regFormRef)" round
@@ -94,7 +43,7 @@
 import { reactive, ref } from "vue";
 import type { FormInstance, FormRules } from "element-plus";
 import { ElMessage } from "element-plus";
-import { useRouter } from "vue-router";
+import { RouteRecordRaw, useRouter } from "vue-router";
 import { login, register } from "@/api/user";
 import { useZeusStore, useAstraeaStore } from "@/store";
 let enterType = ref<boolean>(true);
@@ -105,16 +54,17 @@ const loginFormRef = ref<FormInstance>();
 const regFormRef = ref<FormInstance>();
 const router = useRouter();
 const loginForm = reactive({
-  username: "admin",
+  username: "user",
   password: "123456",
 });
 const regForm = reactive({
-  username: "user",
-  password: "123456",
-  confirm: "123456",
+  username: "",
+  password: "",
+  confirm: "",
   role: null,
+  sid: "",
   tcode: "",
-  telephone: "12345678910",
+  telephone: "",
 });
 const passwordCheck = (rule: any, value: any, callback: any) => {
   if (value === "") {
@@ -155,7 +105,8 @@ const submitLogin = async (formEl: FormInstance | undefined) => {
         });
         if (!res.data.status) {
           Zeus.token = res.data.token;
-          Zeus.uid = res.data.uid;
+          // Astraea.route = res.data.route;
+          Zeus.username = loginForm.username;
           router.push("/");
         }
       });

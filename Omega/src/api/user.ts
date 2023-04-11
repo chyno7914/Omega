@@ -1,16 +1,22 @@
-import service from "../utils/request";
-import qs from 'qs'
-export function login(data:object) {
+import service from "@/utils/request";
+export function login(data: object) {
   return service({
     url: "api/login",
     method: "post",
-    data:qs.stringify(data)
+    data:data
   });
 }
 export function register(data:object) {
   return service({
     url: "api/register",
     method: "post",
-    data:qs.stringify(data)
-  });
+    data:data
+  })
+}
+export function census(data:object){
+  return service({
+    url: "census",
+    method: "post",
+    data:data
+  })
 }

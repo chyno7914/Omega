@@ -1,24 +1,29 @@
 import router from './router'
-import { permissionConfirm } from "./api/permission"
+import { permissionConfirm } from "@/api/permission"
+import {searchTname} from '@/api/table'
 import { createVNode, render } from 'vue'
-import { useHorkesStore, useTESTStore,useAstraeaStore } from "./store";
+import { useZeusStore, useTESTStore,useAstraeaStore,useDemeterStore ,useHermesStore} from "@/store";
 import loadingBar from './components/generalComponent/loadingBar.vue'
 const loadingBarVnode = createVNode(loadingBar)
 render(loadingBarVnode, document.body)
 router.beforeEach((to, from, next) => {
-    const Test = useTESTStore()
-    const Horkes = useHorkesStore()
-    const Astraea = useAstraeaStore()
     loadingBarVnode.component?.exposed?.startLoading()
+    const Test = useTESTStore()
+    const Zeus = useZeusStore()
+    const Astraea = useAstraeaStore()
     if (to.path == '/sign') {
-        Horkes.token = ''
+        Zeus.token = ''
         Astraea.$reset()
     }
     if (Astraea.privilege.includes(to.path)) next()
     else {
         permissionConfirm().then((res) => {
-            Horkes.hasTokenFlag = !res.data.status
-            if (Horkes.hasTokenFlag) {
+            Zeus.hasTokenFlag = !res.data.status
+            Zeus.username = res.data.username
+            Zeus.role = res.data.role
+            Astraea.route = res.data.route
+            Astraea.menu = res.data.menu
+            if (Zeus.hasTokenFlag) {
                 if (Astraea.stayRoute(to.path)) { 
                     if (!router.hasRoute(Astraea.selfName(to.fullPath))) {
                         Astraea.route.forEach((track: any) => {
@@ -31,8 +36,6 @@ router.beforeEach((to, from, next) => {
                                 children: []
                             })
                         })
-                        console.log(1);
-                        
                     Astraea.hasAccretionFlag = true
                     }
                     Astraea.hasAccretionFlag ? next(to.fullPath) : next()
@@ -46,6 +49,15 @@ router.beforeEach((to, from, next) => {
 
 router.afterEach((to, from) => {
     loadingBarVnode.component?.exposed?.endLoading()
-    console.log(router.getRoutes());
-    
+    const Hermes = useHermesStore()
+    const Astraea = useAstraeaStore()
+    const Demeter = useDemeterStore()
+    const section = to.path.split('/')
+    Hermes.librakey = section[section.length-1]
+    // console.log(librakey);
+    if (to.path.includes('/table/chum')) {
+        searchTname().then((res) => {
+            Demeter.flats = res.data.message.slice()
+        })
+    }
 })

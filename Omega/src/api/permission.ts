@@ -1,15 +1,9 @@
 import service from "../utils/request";
-import qs from 'qs'
-import { useHorkesStore } from "../store";
-import store from "../store/pinia"
-
+import { useHermesStore, useTESTStore,useAstraeaStore } from "@/store";
 export function permissionConfirm() {
-  const Horkes = useHorkesStore()
+  const Hermes = useHermesStore()
   return service({
-    url: "/token",
-    method: "post",
-    headers: {
-        Authorization:Horkes.token
-    },
+    url: "/permission",
+    method: "get",
   });
 }

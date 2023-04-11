@@ -46,12 +46,13 @@ export default {};
 @card3-bg: #bad0d3af;
 @card4-bg: #f5bba8af;
 .welcome {
-  height: 100%;
-  background-image: url("assets/img/welcome.jpg");
+  height: 95vh;
+  background-image: url("assets/img/bakcgrund6.jpg");
   background-repeat: no-repeat;
   background-size: cover;
   background-attachment: fixed;
   background-position: 0 -125px;
+  margin-left: -9px;
 }
 .welcome-info {
   margin-left: 3rem;

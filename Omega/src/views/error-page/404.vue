@@ -1,28 +1,50 @@
 <template>
-  <div bgcolor="#494949">
-    <div class="head404"></div>
+  <div class="box">
+    <div bgcolor="#494949">
+      <div class="head404"></div>
 
-    <div class="txtbg404">
-      <div class="txtbox">
-        <p>对不起，您请求的页面不存在、或已被删除、或暂时不可用</p>
+      <div class="txtbg404">
+        <div class="txtbox">
+          <p>对不起，您请求的页面不存在、或已被删除、或暂时不可用</p>
 
-        <p class="paddingbox">请点击以下链接继续浏览网页</p>
+          <p class="paddingbox">请点击以下链接继续浏览网页</p>
 
-        <p>
-          》<a style="cursor: pointer" οnclick="history.back()">返回上一页面</a>
-        </p>
-
-        <p>》<a href="https://www.daixiaorui.com">返回网站首页</a></p>
+          <p @click="moveHome"><a href="javascript:;">》返回网站首页</a></p>
+          <p>》<a style="cursor: pointer" @click="moveSign">返回登录</a></p>
+        </div>
       </div>
     </div>
   </div>
 </template>
-
-<style type="text/css">
+<script setup lang="ts">
+import { reactive, ref } from "vue";
+import type { FormInstance, FormRules } from "element-plus";
+import { ElMessage } from "element-plus";
+import { RouteRecordRaw, useRouter } from "vue-router";
+const router = useRouter();
+const moveHome = () => {
+  router.push("/");
+};
+const moveSign = () => {
+  router.replace("/sign");
+};
+</script>
+<style type="text/css" scoped>
+.box {
+  position: relative;
+  height: 100%;
+  width: 100%;
+  padding-top: 50px;
+  background-image: url("assets/img/stars.jpg");
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-attachment: fixed;
+  background-position: -390px 0;
+}
 .head404 {
   width: 580px;
   height: 234px;
-  margin: 50px auto 0 auto;
+  margin: 0 auto 0 auto;
   background: url(https://www.daixiaorui.com/Public/images/head404.png)
     no-repeat;
 }
