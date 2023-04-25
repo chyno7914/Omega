@@ -94,7 +94,7 @@ export const useDemeterStore = defineStore(Names.Demeter,{
                     },
                 },
             ], 
-            grades: Array.from({ length: 16 }, (_, i) => 2008 + i),
+            grades: Array.from({ length: 16 }, (_, i) => 2023 - i),
             classes: Array.from({ length: 12 }, (_, i) => i + 1),
             flats: <Array<String>>[],
             pageSize:[10,20,30,40,50]

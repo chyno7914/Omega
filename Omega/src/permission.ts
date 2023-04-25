@@ -20,12 +20,11 @@ router.beforeEach((to, from, next) => {
         permissionConfirm().then((res) => {
             Zeus.hasTokenFlag = !res.data.status
             Zeus.username = res.data.username
-            Zeus.role = res.data.role
             Astraea.route = res.data.route
             Astraea.menu = res.data.menu
             if (Zeus.hasTokenFlag) {
                 if (Astraea.stayRoute(to.path)) { 
-                    if (!router.hasRoute(Astraea.selfName(to.fullPath))) {
+                    if (!router.hasRoute(Astraea.selfName(to.path))) {
                         Astraea.route.forEach((track: any) => {
                             router.addRoute(track.father ?? '', {
                                 path: track.path,
@@ -54,10 +53,4 @@ router.afterEach((to, from) => {
     const Demeter = useDemeterStore()
     const section = to.path.split('/')
     Hermes.librakey = section[section.length-1]
-    // console.log(librakey);
-    if (to.path.includes('/table/chum')) {
-        searchTname().then((res) => {
-            Demeter.flats = res.data.message.slice()
-        })
-    }
 })

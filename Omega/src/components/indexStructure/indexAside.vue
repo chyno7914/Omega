@@ -32,19 +32,29 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, watch } from "vue";
 import { useAstraeaStore } from "@/store";
 import { useRouter } from "vue-router";
 const router = useRouter();
 const isCollapse = ref(false);
 const Astraea = useAstraeaStore();
-const uniqueRoute = ref(router.currentRoute.value.fullPath);
+const uniqueRoute = ref(router.currentRoute.value.path);
 const handleOpen = (key: string, keyPath: string[]) => {
   console.log(key, keyPath);
 };
 const handleClose = (key: string, keyPath: string[]) => {
   console.log(key, keyPath);
 };
+watch(
+  () => router.currentRoute.value.path,
+  (newVal, OldVal) => {
+    uniqueRoute.value = newVal;
+  },
+  {
+    deep: true,
+    immediate: true,
+  }
+);
 </script>
 
 <style scoped>

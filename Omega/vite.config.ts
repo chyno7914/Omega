@@ -6,7 +6,7 @@ import type { UserConfig, ConfigEnv } from 'vite'
 import AutoImport from 'unplugin-auto-import/vite' //自动引入ref,reactive等等等
 
 export default defineConfig(({ command, mode }: ConfigEnv): UserConfig => {
-  console.log(fileURLToPath(new URL('./src', import.meta.url)));
+  // console.log(fileURLToPath(new URL('./src', import.meta.url)));
   return {
     plugins: [
       vue(),
@@ -30,6 +30,7 @@ export default defineConfig(({ command, mode }: ConfigEnv): UserConfig => {
         'components': fileURLToPath(new URL('./src/components', import.meta.url)),
         'assets': fileURLToPath(new URL('./src/assets', import.meta.url)),
         'structure': fileURLToPath(new URL('./src/components/indexStructure', import.meta.url)),
+        'custom': fileURLToPath(new URL('./src/components/customComponents', import.meta.url)),
       }
     },
     server: {

@@ -1,7 +1,9 @@
 <template>
   <div>
     <el-scrollbar hight="99vh">
-      <img v-lazy="item" width="500" hight="360" v-for="item in imgList" />
+      <div>
+        <img v-lazy="item" width="500" v-for="item in imgList" />
+      </div>
     </el-scrollbar>
   </div>
 </template>
@@ -25,6 +27,7 @@ let vLazy: Directive<HTMLImageElement, string> = async (el, binding) => {
   });
   observer.observe(el);
 };
+console.log(import.meta.glob("assets/img/!(枫.*)", { eager: true }));
 </script>
 
 <style scoped></style>

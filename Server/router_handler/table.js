@@ -7,10 +7,11 @@ const config = require("../config");
 const { string, array, number, object } = require("joi");
 const { result } = require("@hapi/joi/lib/base");
 const { type } = require("@hapi/joi/lib/extend");
+const { template } = require("@hapi/joi/lib/errors");
 // express router.post("/token", (req, res, next) => {
 //   res.cc("校验成功", 0);
 // });
-const isNihility = (value) => {
+const isNihility = (value = null) => {
   if (value == null || value == undefined) return 1;
   return 0;
 };
@@ -26,7 +27,13 @@ const toCommon = (value) => {
   if (typeof value === "string") return `'${value}'`;
   return undefined;
 };
-
+function locateSequenceQuery(n) {
+  let query = "SELECT 1 AS num";
+  for (let i = 2; i <= n; i++) {
+    query += ` UNION ALL SELECT ${i}`;
+  }
+  return query;
+}
 exports.chum = (req, res, next) => {
   //  "SELECT * FROM omega_route WHERE role IN (SELECT role FROM omega_users WHERE username = ?) or role is null Order By level";
   const userinfo = req.query;
@@ -35,9 +42,11 @@ exports.chum = (req, res, next) => {
   userinfo.major = userinfo.major ? eval(userinfo.major) : undefined;
   userinfo.grade = userinfo.grade ? eval(userinfo.grade) : undefined;
   userinfo.class = userinfo.class ? eval(userinfo.class) : undefined;
-  const sql = `SELECT uid,sid,sname,t1.rid,major,grade,class,tname FROM omega_students t1
+  const sql = `SELECT uid,sid,sname,t1.rid rid,bid,major,grade,class,tname,decipher,tag_type 'type' 
+                FROM omega_students t1
                 LEFT JOIN omega_room t2 ON t1.rid = t2.rid
                 LEFT JOIN omega_tower t3 ON t2.tid = t3.tid
+                LEFT JOIN omega_status t4 ON t4.status = t1.status
                 where ${
                   isNihility(userinfo.sid)
                     ? "true"
@@ -73,7 +82,7 @@ exports.chum = (req, res, next) => {
                     ? ""
                     : "and class in " + toDisperse(userinfo.class)
                 }
-                order by uid ${eval(userinfo.flag) ? "asc" : "desc"}
+                order by t2.tid,rid,bid ${eval(userinfo.flag) ? "desc" : "asc"}
                 ${
                   userinfo.pageSize
                     ? "limit " +
@@ -82,8 +91,6 @@ exports.chum = (req, res, next) => {
                       (userinfo.currentPage - 1) * userinfo.pageSize
                     : ""
                 }`;
-
-  console.log(sql);
   db.query(sql, (err, results) => {
     if (err) return next(err);
     res.cc(results, 0);
@@ -114,11 +121,173 @@ exports.estimate = (req, res, next) => {
   });
 };
 exports.tname = (req, res, next) => {
-  const userinfo = req.query;
   const sql = `select tname from omega_tower where tid>0`;
   db.query(sql, (err, results) => {
     if (err) return next(err);
     const tnameList = results.map((item) => item.tname);
     res.cc(tnameList, 0);
+  });
+};
+exports.room = (req, res, next) => {
+  const userinfo = req.query;
+  const sql = `SELECT rid,tol_bed,use_bed,tname,decipher,tag_type 'type'  
+                FROM omega_room t1
+                LEFT JOIN omega_tower t2 ON t1.tid = t2.tid 
+                LEFT JOIN omega_status t3 ON t1.status = t3.status
+                LEFT JOIN omega_floor t4 ON t1.floor = t4.floor
+                WHERE number <= max_room
+                ${
+                  isNihility(userinfo.rid)
+                    ? ""
+                    : "and rid like " + toPartial(userinfo.rid)
+                }
+                ${
+                  isNihility(userinfo.flat)
+                    ? ""
+                    : "and tname = " + toCommon(userinfo.flat)
+                }
+                ${
+                  isNihility(userinfo.floor)
+                    ? ""
+                    : "and t1.floor like " + toPartial(userinfo.floor)
+                }
+                ${
+                  userinfo.pageSize
+                    ? "limit " +
+                      userinfo.pageSize +
+                      " offset " +
+                      (userinfo.currentPage - 1) * userinfo.pageSize
+                    : ""
+                }`;
+  db.query(sql, (err, results) => {
+    if (err) return next(err);
+    res.cc(results, 0);
+  });
+};
+exports.chumDelete = (req, res, next) => {
+  const target = req.body.sid;
+  const sql = `delete from omega_students where sid = '${target}'`;
+  db.query(sql, (err, result) => {
+    if (err) return next(err);
+    res.cc("删除成功", 0);
+  });
+};
+exports.getFloorCount = (req, res, next) => {
+  const prospect = req.query.flat;
+  const sql = `select ceiling from omega_tower where tname = '${prospect}'`;
+  db.query(sql, (err, results) => {
+    if (err) return next(err);
+    if (results.length === 0) return res.cc("请检查查询数据是否有效");
+    res.send({
+      status: 0,
+      ceiling: results[0].ceiling,
+    });
+  });
+};
+exports.addRoom = (req, res, next) => {
+  const { flat, ceiling, tally: ideal, tol_bed } = req.body;
+  let { transmitFlag, floor: targetFloor } = req.body;
+  const sql = `SELECT t7.tid,t5.floor,max_room, IFNULL(number, 0) AS number
+              FROM omega_floor t5
+              LEFT JOIN (
+                SELECT t1.floor,number FROM omega_room t1
+                LEFT JOIN omega_tower t2 ON t1.tid = t2.tid
+                WHERE number = (
+                SELECT MAX(number)
+                FROM omega_room t3
+                WHERE t1.floor = t3.floor
+              )AND tname = '${flat}')t6 ON t5.floor = t6.floor
+              LEFT JOIN omega_tower t7 ON t5.tid = t7.tid
+              ORDER BY floor`;
+  db.query(sql, (err, results) => {
+    if (err) return next(err);
+    if (results.length == 0) return res.cc("该公寓暂未开放，请联系管理员");
+    let template = results;
+    let coding = [];
+    let brimFlag = false;
+    if (isNihility(targetFloor)) {
+      transmitFlag = true;
+      targetFloor = 1;
+    }
+    if (transmitFlag) {
+      template = template
+        .slice(targetFloor - 1)
+        .concat(template.slice(0, targetFloor - 1))
+        .filter((item) => item.max_room > item.number);
+      let actual = 0;
+      for (let i = 0; i < template.length; i++) {
+        if (actual == ideal) break;
+        let targetObj = template[i];
+        let vivosphere = targetObj.max_room - targetObj.number;
+        let executioner =
+          vivosphere > ideal - actual ? ideal - actual : vivosphere;
+        coding = coding.concat(
+          Array.from({ length: executioner }, (_, i) => [
+            targetObj.floor * 100 + targetObj.number + i + 1,
+            targetObj.floor,
+            i + targetObj.number + 1,
+            tol_bed,
+            targetObj.tid,
+          ])
+        );
+        actual += executioner;
+      }
+      brimFlag = ideal > actual;
+      if (!coding.length) return res.cc("无剩余空间，请联系管理员");
+      const sql =
+        "INSERT INTO omega_room (rid, floor, number,tol_bed,tid) VALUES ?";
+      db.query(sql, [coding], (err, results) => {
+        if (err) return next(err);
+        res.cc(`${actual}条插入成功，${ideal - actual}条插入溢出`, brimFlag);
+      });
+    } else {
+      const targetObj = template.find((obj) => obj.floor == targetFloor);
+      let actual =
+        ideal * 1 + targetObj.number > targetObj.max_room
+          ? targetObj.max_room - targetObj.number
+          : ideal * 1;
+      brimFlag = ideal > actual;
+      coding = Array.from({ length: actual }, (_, i) => [
+        targetObj.floor * 100 + targetObj.number + i + 1,
+        targetObj.floor,
+        i + targetObj.number + 1,
+        tol_bed,
+        targetObj.tid,
+      ]);
+      if (!coding.length) return res.cc("无剩余空间，请联系管理员");
+      const sql =
+        "INSERT INTO omega_room (rid, floor, number,tol_bed,tid) VALUES ?";
+      db.query(sql, [coding], (err, results) => {
+        if (err) return next(err);
+        res.cc(`${actual}条插入成功，${ideal - actual}条插入溢出`, brimFlag);
+      });
+    }
+  });
+};
+exports.adminFloorSearch = (req, res, next) => {
+  const { targetFlat } = req.query;
+  const sql = `SELECT t1.floor,max_room,IFNULL(use_room,0) use_room,decipher,tag_type FROM omega_floor t1
+LEFT JOIN (SELECT FLOOR,COUNT(*) use_room FROM omega_room WHERE STATUS IN (300,301,302) GROUP BY FLOOR) t2 ON t1.floor = t2.floor
+LEFT JOIN omega_tower t3 ON t1.tid = t3.tid
+LEFT JOIN omega_status t4 ON t1.status = t4.status
+WHERE tname = "${targetFlat}"
+AND t1.status != 404`;
+  db.query(sql, (err, results) => {
+    if (err) return next(err);
+    res.cc(results, 0);
+  });
+};
+exports.addFloorWidth = (req, res, next) => {};
+exports.banRoom = (req, res, next) => {
+  const target = req.body.rid;
+  const sql = `select use_bed from omega_room where rid = ${target} limit = 1`;
+  db.query(sql, (err, result) => {
+    if (err) return next(err);
+    if (result[0].use_bed) return res.cc("房间还有剩余住户，请清空房间后禁用");
+    const sql = `update omega_room set status = 304 where rid = ${target}`;
+    db.query(sql, (err, result) => {
+      if (err) return next(err);
+      res.cc("禁用成功", 1);
+    });
   });
 };

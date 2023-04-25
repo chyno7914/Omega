@@ -1,6 +1,6 @@
 <template>
   <div class="header">
-    <div class="title">宿舍管理系统</div>
+    <div class="title">宿舍中台管理系统</div>
     <el-dropdown>
       <span class="el-dropdown-link">
         <el-avatar :size="50" :src="circleUrl" />

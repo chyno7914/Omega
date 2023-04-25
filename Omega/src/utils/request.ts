@@ -11,13 +11,11 @@ service.interceptors.request.use((config) => {
   if(config.method==='post'){
     config.data = qs.stringify({
       uid: Zeus.uid,
-      role:Zeus.role,
       ...config.data
     })
   }else if(config.method==='get'){
     config.params={
       uid: Zeus.uid,
-      role:Zeus.role,
       ...config.params
     }
   }

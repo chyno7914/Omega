@@ -1,3 +1,26 @@
+// import { createApp ,toRaw,onBeforeMount} from 'vue'
+// import './style.css'
+// import App from './App.vue'
+// import { createPinia } from 'pinia'
+// import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
+// import ElementPlus from 'element-plus'
+// import router from './router'
+// import installIcon from 'assets/icon'
+// import 'element-plus/dist/index.css'
+// import directivesPlugin from './directives';
+// import './permission'
+// const app = createApp(App)
+// const store = createPinia()
+// store.use(piniaPluginPersistedstate)
+// app.use(store)
+// app.use(router)
+// app.use(ElementPlus)
+// app.use(directivesPlugin)
+// app.use(installIcon)
+// app.mount('#app')
+
+
+
 import { createApp ,toRaw,onBeforeMount} from 'vue'
 import './style.css'
 import App from './App.vue'
@@ -6,6 +29,7 @@ import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
 import ElementUi from 'element-plus'
 import router from './router'
 import installIcon from 'assets/icon'
+import Directives from '@/directives'
 import 'element-plus/dist/index.css'
 import '@/api/user'
 import './permission'
@@ -15,6 +39,7 @@ store.use(piniaPluginPersistedstate)
 app.use(store)
 app.use(router)
 app.use(ElementUi)
+app.use(Directives)
 app.use(installIcon)
 app.mount('#app')
 // const __piniaKey__:string ="Chyno"

@@ -16,9 +16,11 @@ const telephone = joi
   .alphanum()
   .max(11)
   .min(11)
+  .required()
   .error(new Error("手机号输入不合法，请重新输入"));
-const role = joi.number();
-const tcode = joi.string().min(0).allow(null);
+const role = joi.number().default(0);
+const tcode = joi.string().min(0).allow(null, "");
+const sid = joi.number().optional().allow(null, "");
 exports.reg_schema = {
   body: {
     username,
@@ -26,6 +28,7 @@ exports.reg_schema = {
     telephone,
     role,
     tcode,
+    sid,
   },
 };
 exports.login_schema = {

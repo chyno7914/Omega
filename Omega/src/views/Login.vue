@@ -47,11 +47,20 @@
           >
             <el-form-item label="权限" prop="role">
               <el-select v-model="regForm.role" placeholder="请选择您的身份">
-                <el-option label="学生用户" value="0" />
-                <el-option label="管理员" value="1" />
-                <el-option label="超级管理员" value="2" />
+                <el-option label="临时用户" value="0" />
+                <el-option label="学生用户" value="1" />
+                <el-option label="管理员" value="2" />
+                <el-option label="超级管理员" value="3" />
               </el-select>
             </el-form-item>
+            <div v-show="Number(regForm.role) == 1">
+              <el-form-item label="学号：" prop="sid">
+                <el-input
+                  v-model="regForm.sid"
+                  :formatter="(value:string) => value.replace(/[^\d]/g, '')"
+                />
+              </el-form-item>
+            </div>
             <el-form-item label="用户名：" prop="username">
               <el-input v-model="regForm.username" />
             </el-form-item>
@@ -64,12 +73,11 @@
             <el-form-item label="联系方式：" prop="telephone">
               <el-input v-model="regForm.telephone" />
             </el-form-item>
-            <div v-show="!!Number(regForm.role)">
+            <div v-show="Number(regForm.role) > 1">
               <el-form-item label="校验码：" prop="confirm">
                 <el-input v-model="regForm.tcode" />
               </el-form-item>
             </div>
-
             <el-form-item>
               <el-button type="primary" @click="submitReg(regFormRef)" round
                 >注册</el-button
@@ -114,6 +122,7 @@ const regForm = reactive({
   confirm: "123456",
   role: null,
   tcode: "",
+  sid: null,
   telephone: "12345678910",
 });
 const passwordCheck = (rule: any, value: any, callback: any) => {
@@ -154,8 +163,13 @@ const submitLogin = async (formEl: FormInstance | undefined) => {
           type: res.data.status ? "error" : "success",
         });
         if (!res.data.status) {
-          Zeus.token = res.data.token;
-          Zeus.uid = res.data.uid;
+          ({
+            token: Zeus.token,
+            uid: Zeus.uid,
+            rid: Zeus.rid,
+            tname: Zeus.flat,
+            permission: Zeus.permission,
+          } = res.data);
           router.push("/");
         }
       });
