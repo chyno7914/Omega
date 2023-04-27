@@ -153,12 +153,16 @@ exports.census = (req, res, next) => {
           ? userinfo.uid
           : null;
         const sql = `SELECT rid, tname, omega_tower.tid, tgender,tol_bed vivosphere
-                    FROM omega_room 
-                    LEFT JOIN omega_tower ON omega_room.tid = omega_tower.tid 
-                    WHERE use_bed < tol_bed AND (tgender = ? OR tgender IS NULL) 
-                    AND 'status' != 304
-                    ORDER BY omega_room.rid 
-                    LIMIT 1`;
+                      FROM omega_room 
+                      LEFT JOIN omega_tower ON omega_room.tid = omega_tower.tid 
+                      LEFT JOIN omega_floor ON omega_floor.floor = omega_room.floor
+                      WHERE use_bed < tol_bed AND (tgender = ? OR tgender IS NULL) 
+                      AND omega_room.status != 304
+                      AND omega_floor.status != 404
+                      AND omega_tower.status != 504
+                      AND omega_room.number <= omega_floor.max_room
+                      ORDER BY omega_room.rid 
+                      LIMIT 1`;
         db.query(sql, userinfo.gender, (err, results) => {
           if (err) return next(err);
           if (results.length == 0)

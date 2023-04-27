@@ -5,6 +5,7 @@
     title="添加数据"
     width="40%"
     lock-scroll
+    destroy-on-close
   >
     <el-form
       ref="censusFormRef"
@@ -67,7 +68,7 @@
     <template #footer>
       <span class="dialog-footer">
         <el-button type="primary" @click="">提交</el-button>
-        <el-button @click="resetForm(roomFormRef)">取消</el-button>
+        <el-button @click="dialogFormVisible = false">取消</el-button>
       </span>
     </template>
   </el-dialog>

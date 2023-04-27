@@ -58,10 +58,49 @@ export function searchFloors(data:string) {
 }
 export function banRoom(data: number) {
   return service({
-    url: "room/ban",
+    url: "/room/ban",
     method: "post",
     data: {
       rid:data
+    }
+  })
+}
+export function useRoom(data: number) {
+  return service({
+    url: "/room/use",
+    method: "post",
+    data: {
+      rid:data
+    }
+  })
+}
+export function pushFloor(flat:string,width: number) {
+  return service({
+    url: "/floor/push",
+    method: "post",
+    data: {
+      flat,
+      width
+    }
+  })
+}
+export function banFloor(flat: string, floor: number) {
+  return service({
+    url: "/floor/ban",
+    method: "post",
+    data: {
+      flat,
+      floor
+    }
+  })
+}
+export function extendFloor(flat: string, floor: number) {
+  return service({
+    url: "/floor/extend",
+    method: "post",
+    data: {
+      flat,
+      floor
     }
   })
 }

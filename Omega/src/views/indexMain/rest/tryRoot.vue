@@ -1,99 +1,69 @@
-<!-- <template>
-  <div>
-    <input type="text" v-model="searchValue" placeholder="请输入搜索内容" />
-    <button @click="search">搜索</button>
-    <div
-      class="box"
-      v-for="(item, index) in items"
-      :key="index"
-      :class="{ active: index === activeIndex }"
-    >
-      {{ item }}
-    </div>
-  </div>
-  <el-backtop :right="100" :bottom="100" />
-</template>
-
-<script>
-import { ref } from "vue";
-
-export default {
-  setup() {
-    const items = ref([
-      "盒子一",
-      "盒子二",
-      "盒子三",
-      "盒子四",
-      "盒子五",
-      "盒子六",
-    ]);
-
-    const searchValue = ref("");
-    const activeIndex = ref(-1);
-
-    // 搜索事件处理函数
-    const search = () => {
-      const searchItem = items.value.find((item) =>
-        item.includes(searchValue.value.trim())
-      );
-      if (searchItem) {
-        activeIndex.value = items.value.indexOf(searchItem);
-        const targetElement =
-          document.querySelectorAll(".box")[activeIndex.value];
-        targetElement.scrollIntoView({ behavior: "smooth" });
-      }
-    };
-
-    return {
-      items,
-      searchValue,
-      search,
-      activeIndex,
-    };
-  },
-};
-</script>
-
-<style scoped>
-.box {
-  width: 100px;
-  height: 100px;
-  border: 1px solid #ccc;
-  margin-bottom: 10px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.active {
-  background-color: lightblue;
-}
-</style> -->
 <template>
-  <el-timeline>
-    <el-timeline-item
-      v-for="(activity, index) in activities"
-      :key="index"
-      :timestamp="activity.timestamp"
-    >
-      {{ activity.content }}
-    </el-timeline-item>
-  </el-timeline>
+  <el-table
+    :data="tableData"
+    style="width: 100%"
+    :row-class-name="tableRowClassName"
+  >
+    <el-table-column prop="date" label="Date" width="180" />
+    <el-table-column prop="name" label="Name" width="180" />
+    <el-table-column prop="address" label="Address" />
+  </el-table>
 </template>
 
 <script lang="ts" setup>
-const activities = [
+interface User {
+  date: string;
+  name: string;
+  address: string;
+}
+interface Root {
+  name: string;
+}
+const tableRowClassName = ({
+  row,
+  rowIndex,
+}: {
+  row: Root;
+  rowIndex: number;
+}) => {
+  if (row.name === "Tom") {
+    return "info-row";
+  }
+  return "";
+};
+
+const tableData: User[] = [
   {
-    content: "Event start",
-    timestamp: "2018-04-15",
+    date: "2016-05-03",
+    name: "Tom",
+    address: "No. 189, Grove St, Los Angeles",
   },
   {
-    content: "Approved",
-    timestamp: "2018-04-13",
+    date: "2016-05-02",
+    name: "Tom",
+    address: "No. 189, Grove St, Los Angeles",
   },
   {
-    content: "Success",
-    timestamp: "2018-04-11",
+    date: "2016-05-04",
+    name: "Tom",
+    address: "No. 189, Grove St, Los Angeles",
+  },
+  {
+    date: "2016-05-01",
+    name: "Tom",
+    address: "No. 189, Grove St, Los Angeles",
   },
 ];
 </script>
+
+<style>
+.el-table .warning-row {
+  --el-table-tr-bg-color: var(--el-color-warning-light-9);
+}
+.el-table .success-row {
+  --el-table-tr-bg-color: var(--el-color-success-light-9);
+}
+.el-table .info-row {
+  --el-table-tr-bg-color: var(--el-color-info-light-9);
+}
+</style>

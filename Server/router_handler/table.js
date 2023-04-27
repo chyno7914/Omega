@@ -190,15 +190,18 @@ exports.addRoom = (req, res, next) => {
   const sql = `SELECT t7.tid,t5.floor,max_room, IFNULL(number, 0) AS number
               FROM omega_floor t5
               LEFT JOIN (
-                SELECT t1.floor,number FROM omega_room t1
-                LEFT JOIN omega_tower t2 ON t1.tid = t2.tid
-                WHERE number = (
-                SELECT MAX(number)
-                FROM omega_room t3
-                WHERE t1.floor = t3.floor
+              SELECT t1.floor,number 
+              FROM omega_room t1
+              LEFT JOIN omega_tower t2 ON t1.tid = t2.tid
+              WHERE number = (
+              SELECT MAX(number)
+              FROM omega_room t3
+              WHERE t1.floor = t3.floor
               )AND tname = '${flat}')t6 ON t5.floor = t6.floor
               LEFT JOIN omega_tower t7 ON t5.tid = t7.tid
-              ORDER BY floor`;
+              WHERE t7.status!= 504
+              AND t5.status != 404
+              ORDER BY FLOOR`;
   db.query(sql, (err, results) => {
     if (err) return next(err);
     if (results.length == 0) return res.cc("该公寓暂未开放，请联系管理员");
@@ -270,24 +273,141 @@ exports.adminFloorSearch = (req, res, next) => {
 LEFT JOIN (SELECT FLOOR,COUNT(*) use_room FROM omega_room WHERE STATUS IN (300,301,302) GROUP BY FLOOR) t2 ON t1.floor = t2.floor
 LEFT JOIN omega_tower t3 ON t1.tid = t3.tid
 LEFT JOIN omega_status t4 ON t1.status = t4.status
-WHERE tname = "${targetFlat}"
-AND t1.status != 404`;
+WHERE tname = "${targetFlat}"`;
   db.query(sql, (err, results) => {
     if (err) return next(err);
     res.cc(results, 0);
   });
 };
-exports.addFloorWidth = (req, res, next) => {};
 exports.banRoom = (req, res, next) => {
   const target = req.body.rid;
-  const sql = `select use_bed from omega_room where rid = ${target} limit = 1`;
+  const sql = `select use_bed,status from omega_room where rid = ${target}`;
   db.query(sql, (err, result) => {
     if (err) return next(err);
     if (result[0].use_bed) return res.cc("房间还有剩余住户，请清空房间后禁用");
+    if (result[0].status == 304) return res.cc("房间已禁用");
     const sql = `update omega_room set status = 304 where rid = ${target}`;
     db.query(sql, (err, result) => {
       if (err) return next(err);
-      res.cc("禁用成功", 1);
+      res.cc("禁用成功", 0);
+    });
+  });
+};
+exports.useRoom = (req, res, next) => {
+  const target = req.body.rid;
+  const sql = `select use_bed,tol_bed,status from omega_room where rid = ${target}`;
+  db.query(sql, (err, result) => {
+    if (err) return next(err);
+    if (result[0].status != 304) return res.cc("房间已激活");
+    let status = 300;
+    if (result[0].use_bed == 0) {
+      status = 301;
+    } else if ((result[0].use_bed = result[0].tol_bed)) {
+      status = 302;
+    }
+    const sql = `update omega_room set status = ${status} where rid = ${target}`;
+    db.query(sql, (err, result) => {
+      if (err) return next(err);
+      res.cc("激活成功", 0);
+    });
+  });
+};
+exports.pushFloor = (req, res, next) => {
+  const { flat, width } = req.body;
+  const sql = `select tid,ceiling from omega_tower where tname = "${flat}"`;
+  db.query(sql, (err, results) => {
+    if (err) return next(err);
+    if (results.length == 0) return res.cc("查无宿舍");
+    const { tid, ceiling } = results[0];
+    const awaitAddFloor = ceiling + 1;
+    const sql = `update omega_tower set ceiling = ${awaitAddFloor} where tid = ${tid}`;
+    db.query(sql, (err, results) => {
+      if (err) return next(err);
+      const sql = `insert into omega_floor set ?`;
+      db.query(
+        sql,
+        { tid, floor: awaitAddFloor, max_room: width },
+        (err, results) => {
+          if (err) return next(err);
+          res.cc("插入成功", 0);
+        }
+      );
+    });
+  });
+};
+exports.banFloor = (req, res, next) => {
+  const { flat, floor: target } = req.body;
+  const sql = `SELECT * FROM omega_students t1
+              LEFT JOIN omega_room t2 ON t1.rid = t2.rid
+              LEFT JOIN omega_tower t3 ON t3.tid = t2.tid
+              WHERE t2.floor = ${target}
+              AND tname = '${flat}'
+              AND t1.status != 204`;
+  db.query(sql, (err, results) => {
+    if (err) return next(err);
+    if (results.length) return res.cc("该楼层有剩余用户，无法禁用");
+    const sql = `update omega_floor set status = 404 
+                  where floor =  '${target}' 
+                  and tid = (
+                    select tid from omega_tower
+                    where tname = '${flat}'
+                  )`;
+    db.query(sql, (err, results) => {
+      if (err) return next(err);
+      res.cc("修改成功", 0);
+    });
+  });
+};
+exports.extendFloor = (req, res, next) => {
+  const { flat, floor: target } = req.body;
+  const sql = `SELECT max_room,omega_floor.status FROM omega_floor
+              LEFT JOIN omega_tower ON omega_floor.tid = omega_tower.tid 
+              WHERE tname = "${flat}"
+              AND FLOOR = ${target}`;
+  db.query(sql, (err, results) => {
+    if (err) return next(err);
+    if (!results.length) return res.cc("请确认目标信息");
+    if (results[0].status == 404) return res.cc("不能对禁用对象进行操作");
+    if (results[0].max_room > 98) return res.cc("容量过大，再添加就不礼貌了");
+    const sql = `UPDATE omega_floor
+                LEFT JOIN omega_tower ON omega_floor.tid = omega_tower.tid
+                SET max_room = max_room + 1
+                WHERE tname = "${flat}"
+                AND FLOOR = ${target}`;
+    db.query(sql, (err, results) => {
+      if (err) return next(err);
+      res.cc("扩展完成", 0);
+    });
+  });
+};
+exports.reduceFloor = (req, res, next) => {
+  const { flat, floor: target } = req.body;
+  const sql = `SELECT max_room , t1.status, t4.alive
+              FROM omega_floor t1
+              LEFT JOIN omega_tower t2 ON t1.tid = t2.tid 
+              LEFT JOIN (
+                SELECT t3.floor,t3.tid , COUNT(*) AS alive
+                FROM omega_room t3
+                RIGHT JOIN omega_students t4 ON t3.rid = t4.rid
+                WHERE t4.status != 204
+                GROUP BY t3.floor, t3.tid
+              ) t4 ON t4.floor = t1.floor AND t4.tid = t1.tid 
+              WHERE t2.tname = "${flat}"
+              AND t1.floor = ${target}`;
+  db.query(sql, (err, results) => {
+    if (err) return next(err);
+    if (!results.length) return res.cc("请确认目标信息");
+    if (results[0].status == 404) return res.cc("不能对禁用对象进行操作");
+    if (results[0].alive) return res.cc("查询到剩余用户，无法进行缩减");
+    if (results[0].max_room < 1) return res.cc("没有了，求求你别删了");
+    const sql = `UPDATE omega_floor
+                LEFT JOIN omega_tower ON omega_floor.tid = omega_tower.tid
+                SET max_room = max_room - 1
+                WHERE tname = "${flat}"
+                AND FLOOR = ${target}`;
+    db.query(sql, (err, results) => {
+      if (err) return next(err);
+      res.cc("缩减完成", 0);
     });
   });
 };

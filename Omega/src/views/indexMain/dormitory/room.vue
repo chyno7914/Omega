@@ -133,9 +133,16 @@
           <el-button
             size="small"
             type="danger"
-            @click=""
-            v-show="!scope.row.use_bed"
+            @click="deactRoom(scope.row.rid)"
+            v-show="!scope.row.use_bed && scope.row.decipher != '禁用'"
             >禁用</el-button
+          >
+          <el-button
+            size="small"
+            type="success"
+            @click="activeRoom(scope.row.rid)"
+            v-show="scope.row.decipher == '禁用'"
+            >激活</el-button
           >
         </template>
       </el-table-column>
@@ -187,7 +194,9 @@ import {
   gatherRoom,
   searchCeiling,
   banRoom,
+  useRoom,
 } from "@/api/table";
+import { ElMessage } from "element-plus";
 import { useHermesStore, useDemeterStore, useZeusStore } from "@/store";
 import { reactive, ref, computed } from "vue";
 import { useRouter } from "vue-router";
@@ -284,8 +293,24 @@ const handleDownload = () => {
   //   });
   // });
 };
-const deactRoom = (rid: number) => {
-  banRoom(rid);
+const deactRoom = async (rid: number) => {
+  const {
+    data: { message, status },
+  } = await banRoom(rid);
+  ElMessage({
+    message,
+    type: status ? "error" : "success",
+  });
+  fetchRoom();
+};
+const activeRoom = async (rid: number) => {
+  const {
+    data: { message, status },
+  } = await useRoom(rid);
+  ElMessage({
+    message,
+    type: status ? "error" : "success",
+  });
   fetchRoom();
 };
 fetchRoom();

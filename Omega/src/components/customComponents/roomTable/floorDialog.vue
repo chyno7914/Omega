@@ -14,7 +14,13 @@
         ·{{ Zeus.flat }}
       </div>
     </template>
-    <el-table :data="floorData" style="width: 100%" max-height="250" fit>
+    <el-table
+      :data="floorData"
+      style="width: 100%"
+      max-height="250"
+      fit
+      :row-class-name="tableRowClassName"
+    >
       <el-table-column prop="floor" label="楼层" width="150" align="center" />
       <el-table-column
         prop="max_room"
@@ -30,14 +36,38 @@
       />
       <el-table-column label="状态" width="100" align="center">
         <template #default="scope: any">
-          <el-tag :type="scope.row.type">{{ scope.row.decipher }}</el-tag>
+          <el-tag :type="scope.row.tag_type">{{ scope.row.decipher }}</el-tag>
         </template>
       </el-table-column>
       <el-table-column label="操作" width="175" align="center">
         <template #default="scope">
-          <el-button link type="primary" size="small"> 追加 </el-button>
+          <el-button
+            link
+            type="primary"
+            size="small"
+            @click="extendFloorWidth(scope.row.floor)"
+          >
+            追加
+          </el-button>
           <el-button link type="primary" size="small"> 缩减 </el-button>
-          <el-button link type="danger" size="small"> 禁用 </el-button>
+          <el-button
+            link
+            type="danger"
+            size="small"
+            @click="deactFloor(scope.row.floor)"
+            v-show="scope.row.decipher != '禁用'"
+          >
+            禁用
+          </el-button>
+          <el-button
+            link
+            type="success"
+            size="small"
+            @click=""
+            v-show="scope.row.decipher == '禁用'"
+          >
+            激活
+          </el-button>
         </template>
       </el-table-column>
       <template #empty>
@@ -48,11 +78,15 @@
     </el-table>
     <el-popover placement="right" :width="200" trigger="hover">
       <template #reference>
-        <el-button class="mt-4" style="width: 100%" @click="onAddItem">
+        <el-button class="mt-4" style="width: 100%" @click="addFloor">
           添加楼层
         </el-button>
       </template>
-      添加单层最大房间量 <el-input v-model="Hermes.maxFloorWidth"></el-input>
+      添加单层最大房间量
+      <el-input-number
+        v-model="Hermes.maxFloorWidth"
+        controls-position="right"
+      ></el-input-number>
     </el-popover>
     <template #footer>
       <span class="dialog-footer">
@@ -65,12 +99,16 @@
 <script setup lang="ts">
 import { reactive, ref } from "vue";
 import { useZeusStore } from "@/store";
-import { searchFloors } from "@/api/table";
+import { searchFloors, pushFloor, banFloor, extendFloor } from "@/api/table";
+import { ElMessage } from "element-plus";
 import { useHermesStore } from "@/store";
 defineExpose({
   floorDialog: () => (dialogFormVisible.value = true),
 });
-withDefaults(
+interface Item {
+  decipher: string;
+}
+const props = withDefaults(
   defineProps<{
     targetFlat: string;
   }>(),
@@ -78,15 +116,71 @@ withDefaults(
 );
 const Zeus = useZeusStore();
 const Hermes = useHermesStore();
-let floorData = reactive([]);
+const tableRowClassName = ({
+  row,
+  rowIndex,
+}: {
+  row: any;
+  rowIndex: number;
+}) => {
+  if (row.decipher === "禁用") {
+    console.log("触发");
+
+    return "warning-row";
+  }
+  return "";
+};
+let floorData: any[] = reactive([]);
 const onAddItem = () => {};
 const dialogFormVisible = ref(false);
 const fetchFloor = async () => {
-  ({
-    data: { message: floorData },
-  } = await searchFloors(Zeus.flat));
+  const {
+    data: { message },
+  } = await searchFloors(Zeus.flat);
+  floorData.length = 0;
+  floorData.push(...message.slice());
+};
+const addFloor = async () => {
+  const {
+    data: { message, status },
+  } = await pushFloor(props.targetFlat, Hermes.maxFloorWidth);
+  ElMessage({
+    message: message,
+    type: status ? "error" : "success",
+  });
+  fetchFloor();
+};
+const deactFloor = async (floor: number) => {
+  const {
+    data: { message, status },
+  } = await banFloor(props.targetFlat, floor);
+  ElMessage({
+    message: message,
+    type: status ? "error" : "success",
+  });
+  fetchFloor();
+};
+const extendFloorWidth = async (floor: number) => {
+  const {
+    data: { message, status },
+  } = await extendFloor(props.targetFlat, floor);
+  ElMessage({
+    message: message,
+    type: status ? "error" : "success",
+  });
+  fetchFloor();
 };
 fetchFloor();
 </script>
 
-<style scoped></style>
+<style scoped>
+.el-table .warning-row {
+  --el-table-tr-bg-color: var(--el-color-warning-light-9);
+}
+.el-table .success-row {
+  --el-table-tr-bg-color: var(--el-color-success-light-9);
+}
+.el-table .info-row {
+  --el-table-tr-bg-color: var(--el-color-info-light-9);
+}
+</style>
