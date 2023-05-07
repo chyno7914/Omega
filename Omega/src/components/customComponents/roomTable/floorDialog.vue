@@ -49,7 +49,14 @@
           >
             追加
           </el-button>
-          <el-button link type="primary" size="small"> 缩减 </el-button>
+          <el-button
+            link
+            type="primary"
+            size="small"
+            @click="reduceFloorWidth(scope.row.floor, scope.row.max_room)"
+          >
+            缩减
+          </el-button>
           <el-button
             link
             type="danger"
@@ -63,7 +70,7 @@
             link
             type="success"
             size="small"
-            @click=""
+            @click="activeFloor(scope.row.floor)"
             v-show="scope.row.decipher == '禁用'"
           >
             激活
@@ -99,7 +106,14 @@
 <script setup lang="ts">
 import { reactive, ref } from "vue";
 import { useZeusStore } from "@/store";
-import { searchFloors, pushFloor, banFloor, extendFloor } from "@/api/table";
+import {
+  searchFloors,
+  pushFloor,
+  banFloor,
+  extendFloor,
+  reduceFloor,
+  useFloor,
+} from "@/api/table";
 import { ElMessage } from "element-plus";
 import { useHermesStore } from "@/store";
 defineExpose({
@@ -124,8 +138,6 @@ const tableRowClassName = ({
   rowIndex: number;
 }) => {
   if (row.decipher === "禁用") {
-    console.log("触发");
-
     return "warning-row";
   }
   return "";
@@ -170,17 +182,27 @@ const extendFloorWidth = async (floor: number) => {
   });
   fetchFloor();
 };
+const reduceFloorWidth = async (floor: number, target: number) => {
+  const {
+    data: { message, status },
+  } = await reduceFloor(props.targetFlat, floor, target);
+  ElMessage({
+    message: message,
+    type: status ? "error" : "success",
+  });
+  fetchFloor();
+};
+const activeFloor = async (floor: number) => {
+  const {
+    data: { message, status },
+  } = await useFloor(props.targetFlat,floor);
+  ElMessage({
+    message: message,
+    type: status ? "error" : "success",
+  });
+  fetchFloor();
+};
 fetchFloor();
 </script>
 
-<style scoped>
-.el-table .warning-row {
-  --el-table-tr-bg-color: var(--el-color-warning-light-9);
-}
-.el-table .success-row {
-  --el-table-tr-bg-color: var(--el-color-success-light-9);
-}
-.el-table .info-row {
-  --el-table-tr-bg-color: var(--el-color-info-light-9);
-}
-</style>
+<style></style>

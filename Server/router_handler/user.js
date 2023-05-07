@@ -90,14 +90,16 @@ exports.login = (req, res, next) => {
               t1.uid, 
               t2.rid,
               t5.tname,
+              t5.tid,
               password
             FROM 
               omega_users t1 
               LEFT JOIN omega_students t2 ON t1.uid = t2.uid 
               LEFT JOIN omega_admin t3 ON t1.uid = t3.uid 
-              LEFT JOIN omega_room t4 ON t2.rid = t4.rid 
+              LEFT JOIN omega_room t4 ON t2.rid = t4.rid and t2.tid = t4.tid
               LEFT JOIN omega_tower t5 ON COALESCE(t3.tid, t4.tid) = t5.tid
             WHERE username = ?`;
+  console.log(userinfo);
   db.query(sql, [userinfo.username], (err, results) => {
     if (err) return next(err);
     if (results.length == 0) return next("用户名不存在");
@@ -182,6 +184,7 @@ exports.census = (req, res, next) => {
               grade: userinfo.grade,
               class: userinfo.class,
               rid,
+              tid,
             },
             (err, results) => {
               if (err) return next(err);
@@ -190,11 +193,13 @@ exports.census = (req, res, next) => {
                     SELECT MIN(num) AS new_bid FROM (
                         ${locateSequenceQuery(vivosphere)}
                     ) t1 WHERE num NOT IN (
-                        SELECT bid FROM omega_students WHERE rid = ? AND bid IS NOT NULL AND STATUS != 204
+                        SELECT bid FROM omega_students WHERE rid = ? 
+                        AND tid = ?
+                        AND bid IS NOT NULL AND STATUS != 204
                         )
                     ) t2
                 ) WHERE sid = ?`;
-              db.query(sql, [rid, userinfo.sid], (err, results) => {
+              db.query(sql, [rid, tid, userinfo.sid], (err, results) => {
                 if (err) return next(err);
                 const sql = `UPDATE omega_room SET use_bed = use_bed + 1 ,
                                 status = CASE 

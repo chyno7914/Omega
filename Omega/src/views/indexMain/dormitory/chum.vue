@@ -183,8 +183,10 @@
         class-name="small-padding fixed-width"
       >
         <template #default="scope: any">
-          <el-button size="small" @click="">编辑</el-button>
+          <el-button size="small" @click="">信息</el-button>
+          <el-button size="small" @click="" type="success">离校</el-button>
           <el-button size="small" @click="" type="success">换寝</el-button>
+          <el-button size="small" @click="" type="success">退寝</el-button>
           <el-button
             size="small"
             type="danger"

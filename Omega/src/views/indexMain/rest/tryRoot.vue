@@ -1,69 +1,64 @@
 <template>
-  <el-table
-    :data="tableData"
-    style="width: 100%"
-    :row-class-name="tableRowClassName"
-  >
-    <el-table-column prop="date" label="Date" width="180" />
-    <el-table-column prop="name" label="Name" width="180" />
-    <el-table-column prop="address" label="Address" />
-  </el-table>
+  <div class="container">
+    <el-table class="top-table" :data="tableData" border style="width: 100%">
+      <el-table-column prop="type" label="类型" width="120" />
+      <el-table-column prop="name" label="姓名" />
+      <el-table-column prop="content" label="内容" />
+    </el-table>
+    <vue3-seamless-scroll
+      class="seamless"
+      :list="tableData"
+      :hover="true"
+      :step="0.4"
+      :wheel="true"
+      :isWatch="true"
+    >
+      <el-table
+        class="bottom-table"
+        :data="tableData"
+        border
+        style="width: 100%"
+      >
+        <el-table-column prop="type" label="类型" width="120" />
+        <el-table-column prop="name" label="姓名" />
+        <el-table-column prop="content" label="内容" />
+      </el-table>
+    </vue3-seamless-scroll>
+  </div>
 </template>
 
 <script lang="ts" setup>
-interface User {
-  date: string;
-  name: string;
-  address: string;
-}
-interface Root {
-  name: string;
-}
-const tableRowClassName = ({
-  row,
-  rowIndex,
-}: {
-  row: Root;
-  rowIndex: number;
-}) => {
-  if (row.name === "Tom") {
-    return "info-row";
-  }
-  return "";
-};
+import { ref } from "vue";
 
-const tableData: User[] = [
-  {
-    date: "2016-05-03",
-    name: "Tom",
-    address: "No. 189, Grove St, Los Angeles",
-  },
-  {
-    date: "2016-05-02",
-    name: "Tom",
-    address: "No. 189, Grove St, Los Angeles",
-  },
-  {
-    date: "2016-05-04",
-    name: "Tom",
-    address: "No. 189, Grove St, Los Angeles",
-  },
-  {
-    date: "2016-05-01",
-    name: "Tom",
-    address: "No. 189, Grove St, Los Angeles",
-  },
-];
+const tableData: any = ref([]);
+
+const getData = () => {
+  for (let i = 0; i < 6; i++) {
+    tableData.value.push({
+      type: `家常菜${i + 1}`,
+      name: `洋茄子炒鸡蛋${i + 1}`,
+      content: `多情键客无情键${i + 1}`,
+    });
+  }
+};
+getData();
 </script>
 
-<style>
-.el-table .warning-row {
-  --el-table-tr-bg-color: var(--el-color-warning-light-9);
+<style scoped>
+.container {
+  width: 500px;
+  height: 300px;
 }
-.el-table .success-row {
-  --el-table-tr-bg-color: var(--el-color-success-light-9);
+.seamless {
+  width: 100%;
+  height: 220px;
+  overflow: hidden;
 }
-.el-table .info-row {
-  --el-table-tr-bg-color: var(--el-color-info-light-9);
+:deep .top-table .el-table__body-wrapper {
+  display: none;
+}
+:deep .bottom-table .el-table__header-wrapper {
+  display: none;
+  width: 100%;
 }
 </style>

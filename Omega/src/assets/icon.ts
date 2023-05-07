@@ -17,7 +17,8 @@ import {
     User,
     School,
     Download,
-    Search
+    Search,
+    Monitor
 } from '@element-plus/icons-vue'
 
 const dictIcon = shallowReactive({
@@ -34,7 +35,8 @@ const dictIcon = shallowReactive({
     'User': User,
     'School': School,
     'Download': Download,
-    'Search':Search
+    'Search': Search,
+    'Monitor':Monitor
 })
 const installIcon = (app:any) => {
     // 便于模板获取

@@ -1,12 +1,4 @@
-const express = require("express");
-const router = express.Router();
 const db = require("../db/init");
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
-const config = require("../config");
-// express router.post("/token", (req, res, next) => {
-//   res.cc("校验成功", 0);
-// });
 exports.permission = (req, res, next) => {
   //  "SELECT * FROM omega_route WHERE role IN (SELECT role FROM omega_users WHERE username = ?) or role is null Order By level";
   const proven = req.query;

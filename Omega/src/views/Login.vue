@@ -168,6 +168,7 @@ const submitLogin = async (formEl: FormInstance | undefined) => {
             uid: Zeus.uid,
             rid: Zeus.rid,
             tname: Zeus.flat,
+            tid:Zeus.tid,
             permission: Zeus.permission,
           } = res.data);
           router.push("/");

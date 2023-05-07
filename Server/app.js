@@ -4,6 +4,7 @@ const cors = require("cors");
 const userRouter = require("./router/user");
 const tokenRouter = require("./router/permission");
 const tableRouter = require("./router/table");
+const chartRouter = require("./router/chart");
 const expressJWT = require("express-jwt");
 const config = require("./config");
 app.use(cors());
@@ -25,6 +26,7 @@ app.use(
 app.use(userRouter);
 app.use(tokenRouter);
 app.use(tableRouter);
+app.use(chartRouter);
 app.use((err, req, res, next) => {
   if (err.name == "UnauthorizedError") return res.cc("身份验证错误");
   return res.cc(err);

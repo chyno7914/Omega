@@ -15,4 +15,8 @@ router.post("/floor/push", tableHandler.pushFloor);
 router.post("/floor/ban", tableHandler.banFloor);
 router.post("/floor/extend", tableHandler.extendFloor);
 router.post("/floor/reduce", tableHandler.reduceFloor);
+router.post("/floor/use", tableHandler.useFloor);
+router.post("/floor/edit", tableHandler.editRoom);
+router.get("/flat", tableHandler.flat);
+router.post("/flat/add", tableHandler.addFlat);
 module.exports = router;

@@ -13,7 +13,7 @@ interface Club extends MenuList{
     title: string,
     father: string,
     level: number,
-    role:number
+    role: number,
 }
 interface MenuList {
     mid: number,
@@ -29,7 +29,7 @@ export const useAstraeaStore = defineStore(Names.Astraea,{
             ...stars,
             privilege: ['/sign', '/404'],
             menu: <Array<MenuList>>[],
-            instance:getCurrentInstance()
+            instance: getCurrentInstance(),
               // asyncRoute:this.route.map((item:any)=>{item.path})
         }
     },
@@ -72,6 +72,33 @@ export const useAstraeaStore = defineStore(Names.Astraea,{
         },
         retrieleaves(index:number):any{
             return this.route.filter(item => item.mid==index)
+        },
+        arbiDirction(path: string, factor: string) {
+              const splitPath = path.split('/');
+                const splitFactor = factor.split('/');
+                // 删除 factor 中元素为空字符串的项
+                const factorWithoutEmpty = splitFactor.filter(item => item !== '');
+                // 查找 factor 在 path 中的位置
+                const index = splitPath.findIndex((item, index) => {
+                    if (index + factorWithoutEmpty.length > splitPath.length) {
+                    return false; // 路径长度不足，无法匹配 factor
+                    }
+                    for (let i = 0; i < factorWithoutEmpty.length; i++) {
+                    if (splitPath[index + i] !== factorWithoutEmpty[i]) {
+                        return false; // 有不匹配的元素
+                    }
+                    }
+                    return true; // 匹配成功
+                });
+
+                if (index >= 0) {
+                    // 如果找到了匹配的部分，则组装最终结果
+                    const result = splitPath.slice(0, index).join('/');
+                    return result === '' ? '/' : result;
+                } else {
+                    // 没有找到匹配的部分，返回原始路径
+                    return path;
+                }
         }
         // 其他情况下可以使用Test.$patch 对store进行修改
     },

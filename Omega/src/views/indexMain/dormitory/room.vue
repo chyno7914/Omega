@@ -48,6 +48,14 @@
       >
         <span style="margin-left: 5px"> 层显</span>
       </el-button>
+      <el-button
+        class="filter-item"
+        type="primary"
+        style=""
+        @click="chartDrawerRef?.showDrawer()"
+      >
+        <span style="margin-left: 5px"> 详情</span>
+      </el-button>
       <el-button class="filter-item" type="primary" style="" disabled>
         导出
       </el-button>
@@ -65,28 +73,28 @@
       max-height="800px"
       :data="roomData"
     >
-      <el-table-column label="公寓" width="200" align="center">
+      <el-table-column label="公寓" width="280" align="center">
         <template #default="scope: any">
           <div style="align-items: center">
             <span style="text-align: center">{{ scope.row.tname }}</span>
           </div>
         </template>
       </el-table-column>
-      <el-table-column label="房间号" width="200px" align="center">
+      <el-table-column label="房间号" width="280px" align="center">
         <template #default="scope: any">
           <div style="align-items: center">
             <span style="text-align: center">{{ scope.row.rid }}</span>
           </div>
         </template>
       </el-table-column>
-      <el-table-column label="总床位" width="200px" align="center">
+      <el-table-column label="总床位" width="280px" align="center">
         <template #default="scope: any">
           <div style="align-items: center">
             <span style="text-align: center">{{ scope.row.tol_bed }}</span>
           </div>
         </template>
       </el-table-column>
-      <el-table-column label="已用床位" align="center" width="200">
+      <el-table-column label="已用床位" align="center" width="280">
         <template #default="scope: any">
           <div style="align-items: center">
             <span style="text-align: center">{{ scope.row.use_bed }}</span>
@@ -96,7 +104,7 @@
       <el-table-column
         label="状态"
         class-name="status-col"
-        width="100"
+        width="200"
         align="center"
       >
         <template #default="scope: any">
@@ -122,7 +130,18 @@
         class-name="small-padding fixed-width"
       >
         <template #default="scope: any">
-          <el-button size="small" @click="">编辑</el-button>
+          <el-button
+            size="small"
+            @click="
+              changeDialogRef?.changeDialog(
+                scope.row.tol_bed,
+                scope.row.use_bed,
+                scope.row.rid,
+                scope.row.tid
+              )
+            "
+            >修改</el-button
+          >
           <el-button
             size="small"
             type="info"
@@ -167,24 +186,25 @@
       </template>
     </el-table>
     <el-pagination
-      v-show="total"
+      v-if="total"
       style="margin: 10px 30%"
       @size-change="handleSizeChange"
       @current-change="handleCurrentChange"
-      :current-page.sync="currentPage"
+      v-model:currentPage="currentPage"
       :page-sizes="[10, 20, 30, 40]"
       :page-size="pageSize"
       layout="total, sizes, prev, pager, next, jumper"
       :total="total"
-    >
-    </el-pagination>
-    <AddDialog
-      :floors-options="floorsOptions"
-      :flats-options="flatsOptions"
-      ref="addDialogRef"
-    ></AddDialog>
-    <FloorDialog :target-flat="Zeus.flat" ref="floorDialogRef"></FloorDialog>
+    ></el-pagination>
   </div>
+  <AddDialog
+    :floors-options="floorsOptions"
+    :flats-options="flatsOptions"
+    ref="addDialogRef"
+  ></AddDialog>
+  <FloorDialog :target-flat="Zeus.flat" ref="floorDialogRef"></FloorDialog>
+  <ChangeDialog ref="changeDialogRef" :fetch-room="fetchRoom"></ChangeDialog>
+  <ChartDrawer :flat="Zeus.flat" ref="chartDrawerRef"></ChartDrawer>
 </template>
 
 <script lang="ts" setup>
@@ -202,12 +222,16 @@ import { reactive, ref, computed } from "vue";
 import { useRouter } from "vue-router";
 import AddDialog from "custom/roomTable/addDialog.vue";
 import FloorDialog from "custom/roomTable/floorDialog.vue";
+import ChangeDialog from "custom/roomTable/changeDialog.vue";
+import ChartDrawer from "custom/roomTable/chartDrawer.vue";
 const router = useRouter();
 const Hermes = useHermesStore();
 const Demeter = useDemeterStore();
 const Zeus = useZeusStore();
 const addDialogRef = ref<InstanceType<typeof AddDialog>>();
 const floorDialogRef = ref<InstanceType<typeof FloorDialog>>();
+const changeDialogRef = ref<InstanceType<typeof ChangeDialog>>();
+const chartDrawerRef = ref<InstanceType<typeof ChartDrawer>>();
 let currentPage = ref(1);
 let pageSize = ref(20);
 let total = ref(0);

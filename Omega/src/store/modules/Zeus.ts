@@ -7,7 +7,8 @@ export const useZeusStore = defineStore(Names.Zeus,{
             hasTokenFlag: false,
             uid: -1,
             username: '',
-            rid:" ",
+            rid: " ",
+            tid:-1,
             flat: " ",
             permission: <Array<String>>[],
         }

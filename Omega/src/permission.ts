@@ -52,5 +52,6 @@ router.afterEach((to, from) => {
     const Astraea = useAstraeaStore()
     const Demeter = useDemeterStore()
     const section = to.path.split('/')
-    Hermes.librakey = section[section.length-1]
+    Hermes.librakey = section[section.length - 1]
+    
 })

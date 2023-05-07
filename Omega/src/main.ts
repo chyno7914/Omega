@@ -31,15 +31,18 @@ import router from './router'
 import installIcon from 'assets/icon'
 import Directives from '@/directives'
 import 'element-plus/dist/index.css'
+import vue3SeamlessScroll from "vue3-seamless-scroll";
 import '@/api/user'
 import './permission'
 const app = createApp(App)
 const store = createPinia()
 store.use(piniaPluginPersistedstate)
 app.use(store)
+app.use(vue3SeamlessScroll)
 app.use(router)
 app.use(ElementUi)
 app.use(Directives)
+
 app.use(installIcon)
 app.mount('#app')
 // const __piniaKey__:string ="Chyno"

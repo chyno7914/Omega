@@ -104,3 +104,63 @@ export function extendFloor(flat: string, floor: number) {
     }
   })
 }
+export function reduceFloor(flat: string, floor: number,target:number) {
+  return service({
+    url: "/floor/reduce",
+    method: "post",
+    data: {
+      flat,
+      floor,
+      target
+    }
+  })
+}
+export function useFloor(flat:string,floor:number) {
+  return service({
+    url: "/floor/use",
+    method: "post",
+    data: {
+      floor,
+      flat
+    }
+  })
+}
+type ChangeRoomForm = {
+  rid: number;
+  useBed: number;
+  tolBed: number;
+  tid: number;
+};
+export function editRoom(data:ChangeRoomForm) {
+  return service({
+    url: "/floor/edit",
+    method: "post",
+    data: data
+  })
+}
+export function searchFlat(tid?:number|null,tname?:string|null) {
+  return service({
+    url: "/flat",
+    method: "get",
+    params: {
+      tid,
+      tname
+    }
+  })
+}
+export function addFlat(data: object) {
+  return service({
+    url: "/flat/add",
+    method: "post",
+    data:data
+  })
+}
+// export function searchFloors(data:string) {
+//   return service({
+//     url: "/admin/floor/search",
+//     method: "get",
+//     params: {
+//       targetFlat:data
+//     }
+//   })
+// }

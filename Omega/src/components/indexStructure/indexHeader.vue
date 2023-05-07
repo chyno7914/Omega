@@ -56,6 +56,7 @@ const { circleUrl } = toRefs(state);
   background-size: cover;
   background-attachment: fixed;
   background-position: 0 -190px;
+  z-index: 1000;
 }
 .title {
   position: absolute;

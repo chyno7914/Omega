@@ -27,6 +27,10 @@ const toCommon = (value) => {
   if (typeof value === "string") return `'${value}'`;
   return undefined;
 };
+const setNull = (value) => {
+  if (value === "") return null;
+  return value;
+};
 function locateSequenceQuery(n) {
   let query = "SELECT 1 AS num";
   for (let i = 2; i <= n; i++) {
@@ -44,7 +48,7 @@ exports.chum = (req, res, next) => {
   userinfo.class = userinfo.class ? eval(userinfo.class) : undefined;
   const sql = `SELECT uid,sid,sname,t1.rid rid,bid,major,grade,class,tname,decipher,tag_type 'type' 
                 FROM omega_students t1
-                LEFT JOIN omega_room t2 ON t1.rid = t2.rid
+                LEFT JOIN omega_room t2 ON t1.rid = t2.rid and t1.tid = t2.tid
                 LEFT JOIN omega_tower t3 ON t2.tid = t3.tid
                 LEFT JOIN omega_status t4 ON t4.status = t1.status
                 where ${
@@ -130,7 +134,7 @@ exports.tname = (req, res, next) => {
 };
 exports.room = (req, res, next) => {
   const userinfo = req.query;
-  const sql = `SELECT rid,tol_bed,use_bed,tname,decipher,tag_type 'type'  
+  const sql = `SELECT rid,tol_bed,use_bed,tname,decipher,tag_type 'type',t1.tid 
                 FROM omega_room t1
                 LEFT JOIN omega_tower t2 ON t1.tid = t2.tid 
                 LEFT JOIN omega_status t3 ON t1.status = t3.status
@@ -269,11 +273,22 @@ exports.addRoom = (req, res, next) => {
 };
 exports.adminFloorSearch = (req, res, next) => {
   const { targetFlat } = req.query;
-  const sql = `SELECT t1.floor,max_room,IFNULL(use_room,0) use_room,decipher,tag_type FROM omega_floor t1
-LEFT JOIN (SELECT FLOOR,COUNT(*) use_room FROM omega_room WHERE STATUS IN (300,301,302) GROUP BY FLOOR) t2 ON t1.floor = t2.floor
-LEFT JOIN omega_tower t3 ON t1.tid = t3.tid
-LEFT JOIN omega_status t4 ON t1.status = t4.status
-WHERE tname = "${targetFlat}"`;
+  const sql = `SELECT t1.floor,max_room,IFNULL(use_room,0) use_room,decipher,tag_type 
+              FROM omega_floor t1
+              LEFT JOIN (
+                SELECT FLOOR,COUNT(*) use_room 
+                FROM omega_room 
+                WHERE STATUS IN (300,301,302) 
+                AND number <= (
+                  SELECT max_room 
+                  FROM omega_floor
+                  WHERE omega_floor.floor = omega_room.floor
+                )
+                GROUP BY FLOOR
+              ) t2 ON t1.floor = t2.floor
+              LEFT JOIN omega_tower t3 ON t1.tid = t3.tid
+              LEFT JOIN omega_status t4 ON t1.status = t4.status
+              WHERE tname = "${targetFlat}"`;
   db.query(sql, (err, results) => {
     if (err) return next(err);
     res.cc(results, 0);
@@ -338,7 +353,7 @@ exports.pushFloor = (req, res, next) => {
 exports.banFloor = (req, res, next) => {
   const { flat, floor: target } = req.body;
   const sql = `SELECT * FROM omega_students t1
-              LEFT JOIN omega_room t2 ON t1.rid = t2.rid
+              LEFT JOIN omega_room t2 ON t1.rid = t2.rid and t1.tid = t2.tid
               LEFT JOIN omega_tower t3 ON t3.tid = t2.tid
               WHERE t2.floor = ${target}
               AND tname = '${flat}'
@@ -381,33 +396,111 @@ exports.extendFloor = (req, res, next) => {
   });
 };
 exports.reduceFloor = (req, res, next) => {
-  const { flat, floor: target } = req.body;
-  const sql = `SELECT max_room , t1.status, t4.alive
+  const { flat, floor, target } = req.body;
+  const sql = `SELECT max_room , t1.status, t5.rid
               FROM omega_floor t1
               LEFT JOIN omega_tower t2 ON t1.tid = t2.tid 
               LEFT JOIN (
-                SELECT t3.floor,t3.tid , COUNT(*) AS alive
-                FROM omega_room t3
-                RIGHT JOIN omega_students t4 ON t3.rid = t4.rid
-                WHERE t4.status != 204
-                GROUP BY t3.floor, t3.tid
-              ) t4 ON t4.floor = t1.floor AND t4.tid = t1.tid 
+                SELECT rid,t3.tid,FLOOR FROM omega_room t3
+                LEFT JOIN omega_tower t4 ON t3.tid = t4.tid 
+                WHERE number = ${target}
+                AND use_bed > 0
+              ) t5 ON t5.floor = t1.floor AND t5.tid = t1.tid 
               WHERE t2.tname = "${flat}"
-              AND t1.floor = ${target}`;
+              AND t1.floor = "${floor}"`;
   db.query(sql, (err, results) => {
     if (err) return next(err);
     if (!results.length) return res.cc("请确认目标信息");
     if (results[0].status == 404) return res.cc("不能对禁用对象进行操作");
-    if (results[0].alive) return res.cc("查询到剩余用户，无法进行缩减");
+    if (results[0].rid) return res.cc("查询到剩余用户，无法进行缩减");
     if (results[0].max_room < 1) return res.cc("没有了，求求你别删了");
     const sql = `UPDATE omega_floor
                 LEFT JOIN omega_tower ON omega_floor.tid = omega_tower.tid
                 SET max_room = max_room - 1
                 WHERE tname = "${flat}"
-                AND FLOOR = ${target}`;
+                AND FLOOR = ${floor}`;
     db.query(sql, (err, results) => {
       if (err) return next(err);
       res.cc("缩减完成", 0);
     });
+  });
+};
+exports.useFloor = (req, res, next) => {
+  const { flat, floor: target } = req.body;
+  const sql = `SELECT t1.status FROM omega_floor t1
+              LEFT JOIN omega_tower t2 ON t2.tid = t1.tid
+              WHERE t1.floor = ${target}
+              AND tname = '${flat}'`;
+  db.query(sql, (err, result) => {
+    if (err) return next(err);
+    if (result[0].status != 404) return res.cc("楼层已激活");
+    console.log(result);
+    let status = 400;
+    const sql = `update omega_floor set status = ${status} 
+                  where floor = ${target} and tid = (
+                    select tid from omega_tower
+                    where tid = (
+                    select tid from omega_tower
+                    where tname = '${flat}'
+                  ))`;
+    db.query(sql, (err, result) => {
+      if (err) return next(err);
+      res.cc("激活成功", 0);
+    });
+  });
+};
+exports.editRoom = (req, res, next) => {
+  const { tid, rid, tolBed } = req.body;
+  const sql = `UPDATE omega_room 
+               SET tol_bed = ${tolBed}
+               WHERE tid = ${tid} AND rid = ${rid};`;
+  db.query(sql, (err, results) => {
+    if (err) return next(err);
+    if (!results.affectedRows) return res.cc("好好检查输入吧");
+    res.cc("修改成功", 0);
+  });
+};
+exports.flat = (req, res, next) => {
+  const userinfo = req.query;
+  const sql = `SELECT DISTINCT t1.*,  IFNULL(tolly, 0) tolly, IFNULL(inuse, 0) inuse,t3.*
+                FROM omega_tower t1
+                LEFT JOIN (
+                    SELECT tid, SUM(tol_bed) tolly, SUM(use_bed) inuse
+                    FROM omega_room
+                    GROUP BY tid
+                ) t2 ON t1.tid = t2.tid
+                LEFT JOIN omega_status t3 ON t1.status = t3.status
+                WHERE t1.tid
+                ORDER BY t1.tid = "${userinfo.tid}" desc, tname = "${userinfo.flat}" desc,
+                t1.tid like "%${userinfo.tid}%" desc, tname like "%${userinfo.flat}%" desc,
+                tid desc
+                `;
+  console.log(sql);
+  db.query(sql, (err, results) => {
+    if (err) return next(err);
+    res.cc(results, 0);
+  });
+};
+exports.addFlat = (req, res, next) => {
+  const userinfo = req.body;
+  const sql = `select * from omega_tower where tname = "${userinfo.tname}"`;
+  db.query(sql, (err, results) => {
+    if (err) return next(err);
+    if (results.length) return res.cc("寝室名已被注册");
+    const sql = `insert into omega_tower set ?`;
+    console.log(sql, userinfo);
+    db.query(
+      sql,
+      {
+        tname: userinfo.tname,
+        tgender: setNull(userinfo.tgender),
+        ceiling: userinfo.ceiling,
+        tcode: userinfo.tcode,
+      },
+      (err, results) => {
+        if (err) return next(err);
+        res.cc("添加成功", 0);
+      }
+    );
   });
 };
