@@ -9,6 +9,7 @@ const expressJWT = require("express-jwt");
 const config = require("./config");
 app.use(cors());
 app.use(express.urlencoded({ extended: false }));
+app.use(express.static("public"));
 app.use((req, res, next) => {
   res.cc = (err, status = 1) => {
     // console.log(err);
@@ -20,7 +21,9 @@ app.use((req, res, next) => {
   next();
 });
 app.use(
-  expressJWT({ secret: config.jwtSecretKey }).unless({ path: [/^\/api\//] })
+  expressJWT({ secret: config.jwtSecretKey }).unless({
+    path: [/^\/api\//, /^\/images\//],
+  })
 );
 
 app.use(userRouter);

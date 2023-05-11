@@ -20,3 +20,13 @@ export function census(data:object){
     data:data
   })
 }
+export function portrait(data: FormData) {
+  return service({
+    url: "/portrait",
+    method: "post",
+    data: data,
+    headers: {
+      "Content-Type": "multipart/form-data"
+    }
+  })
+}

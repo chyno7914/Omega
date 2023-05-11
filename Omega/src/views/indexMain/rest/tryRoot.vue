@@ -1,64 +1,83 @@
-<template>
-  <div class="container">
-    <el-table class="top-table" :data="tableData" border style="width: 100%">
-      <el-table-column prop="type" label="类型" width="120" />
-      <el-table-column prop="name" label="姓名" />
-      <el-table-column prop="content" label="内容" />
-    </el-table>
-    <vue3-seamless-scroll
-      class="seamless"
-      :list="tableData"
-      :hover="true"
-      :step="0.4"
-      :wheel="true"
-      :isWatch="true"
-    >
-      <el-table
-        class="bottom-table"
-        :data="tableData"
-        border
-        style="width: 100%"
-      >
-        <el-table-column prop="type" label="类型" width="120" />
-        <el-table-column prop="name" label="姓名" />
-        <el-table-column prop="content" label="内容" />
-      </el-table>
-    </vue3-seamless-scroll>
-  </div>
+<!-- <template>
+  <el-upload
+    class="avatar-uploader"
+    action="http://127.0.0.1:3008/portrait"
+    :show-file-list="false"
+    :on-success="handleAvatarSuccess"
+    :before-upload="beforeAvatarUpload"
+    name="portrait"
+    :headers="{ Authorization: Zeus.token }"
+    data="1"
+  >
+    <img v-if="imageUrl" :src="imageUrl" class="avatar" />
+    <el-icon v-else class="avatar-uploader-icon"><Plus /></el-icon>
+  </el-upload>
 </template>
 
 <script lang="ts" setup>
 import { ref } from "vue";
-
-const tableData: any = ref([]);
-
-const getData = () => {
-  for (let i = 0; i < 6; i++) {
-    tableData.value.push({
-      type: `家常菜${i + 1}`,
-      name: `洋茄子炒鸡蛋${i + 1}`,
-      content: `多情键客无情键${i + 1}`,
-    });
-  }
+import { ElMessage } from "element-plus";
+import { Plus } from "@element-plus/icons-vue";
+import { useZeusStore } from "@/store";
+import type { UploadProps } from "element-plus";
+const Zeus = useZeusStore();
+const imageUrl = ref("");
+const handleAvatarSuccess: UploadProps["onSuccess"] = (
+  response,
+  uploadFile
+) => {
+  imageUrl.value = URL.createObjectURL(uploadFile.raw!);
+  // console.log(imageUrl.value);
 };
-getData();
+
+const beforeAvatarUpload: UploadProps["beforeUpload"] = (rawFile) => {
+  if (!/^image\/(jpeg|png|jpg)$/.test(rawFile.type)) {
+    ElMessage.error("Avatar picture must be JPG or PNG format!");
+    return false;
+  } else if (rawFile.size / 1024 / 1024 > 2) {
+    ElMessage.error("Avatar picture size can not exceed 2MB!");
+    return false;
+  }
+  return true;
+};
 </script>
 
 <style scoped>
-.container {
-  width: 500px;
-  height: 300px;
-}
-.seamless {
-  width: 100%;
-  height: 220px;
-  overflow: hidden;
-}
-:deep .top-table .el-table__body-wrapper {
-  display: none;
-}
-:deep .bottom-table .el-table__header-wrapper {
-  display: none;
-  width: 100%;
+.avatar-uploader .avatar {
+  width: 178px;
+  height: 178px;
+  display: block;
 }
 </style>
+
+<style>
+.avatar-uploader .el-upload {
+  border: 1px dashed var(--el-border-color);
+  border-radius: 6px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: var(--el-transition-duration-fast);
+}
+
+.avatar-uploader .el-upload:hover {
+  border-color: var(--el-color-primary);
+}
+
+.el-icon.avatar-uploader-icon {
+  font-size: 28px;
+  color: #8c939d;
+  width: 178px;
+  height: 178px;
+  text-align: center;
+}
+</style> -->
+<template>
+  <PhotoCut></PhotoCut>
+</template>
+
+<script setup lang="ts">
+import PhotoCut from "components/generalComponent/photoCut.vue";
+</script>
+
+<style scoped lang="scss"></style>

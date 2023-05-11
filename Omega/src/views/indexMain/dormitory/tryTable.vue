@@ -81,7 +81,14 @@
       "
     >
       <el-auto-resizer>
-        <template #default="{ height, width }">
+        <vue3-seamless-scroll
+          class="seamless"
+          :list="chumData"
+          :hover="true"
+          :step="0.4"
+          :wheel="true"
+          :isWatch="true"
+        >
           <el-table-v2
             :columns="columns"
             :data="chumData"
@@ -89,12 +96,12 @@
             :width="810"
             :height="400"
           >
-            <template #empty>
-              <div class="flex items-center justify-center h-100%">
-                <el-empty />
-              </div>
-            </template>
           </el-table-v2>
+        </vue3-seamless-scroll>
+        <template #empty>
+          <div class="flex items-center justify-center h-100%">
+            <el-empty />
+          </div>
         </template>
       </el-auto-resizer>
     </div>

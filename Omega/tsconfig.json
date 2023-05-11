@@ -27,7 +27,7 @@
     }
     
   },
-  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue","src/shims .d.ts", "src/permission.ts", "src/utils/Export2Excel.js"],
+  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue","src/shims .d.ts", "src/permission.ts", "src/utils/Export2Excel.js", "src/assets/china.ts"],
   "references": [{ "path": "./tsconfig.node.json" }],
   "suppressImplicitAnyIndexErrors": true
 }

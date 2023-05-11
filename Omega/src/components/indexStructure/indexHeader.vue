@@ -3,7 +3,7 @@
     <div class="title">宿舍中台管理系统</div>
     <el-dropdown>
       <span class="el-dropdown-link">
-        <el-avatar :size="50" :src="circleUrl" />
+        <el-avatar :size="50" :src="circleUrl" fit="cover" />
       </span>
       <template #dropdown>
         <el-dropdown-menu>
@@ -33,7 +33,7 @@ const outWeb = () => {
 };
 const state = reactive({
   circleUrl:
-    "https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png",
+    "http://127.0.0.1:3008/images/lADPJxRxWZDJRbPNA67NAuQ_740_942.jpg_720x720q90g(1)(1).png",
   sizeList: ["small", "", "large"] as const,
 });
 

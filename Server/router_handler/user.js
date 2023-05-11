@@ -2,6 +2,8 @@ const db = require("../db/init");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const config = require("../config");
+const path = require("path");
+const fs = require("fs");
 function locateSequenceQuery(n) {
   let query = "SELECT 1 AS num";
   for (let i = 2; i <= n; i++) {
@@ -235,6 +237,25 @@ exports.census = (req, res, next) => {
           );
         });
       });
+    });
+  });
+};
+exports.portrait = (req, res, next) => {
+  const file = req.file;
+  console.log(req.body);
+  const fpath = path.join(__dirname, "../public/img", file.originalname);
+  fs.readFile(file.path, (err, data) => {
+    fs.writeFile(fpath, data, (err) => {
+      if (err) return res.send({ status: 1, message: "上传失败" });
+      else {
+        res.send({
+          status: 0,
+          message: "上传成功",
+          src: "/img/" + file.originalname,
+        });
+        //删除upload上传的文件图片
+        fs.unlinkSync(file.path);
+      }
     });
   });
 };

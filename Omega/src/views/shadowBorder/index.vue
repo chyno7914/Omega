@@ -12,15 +12,19 @@
       </el-header>
       <el-main>
         <el-row class="borderMain">
-          <el-col :span="7" class="leftCol">
-            <el-row class="leftTop"></el-row>
-            <el-row class="leftBottom"></el-row>
+          <el-col :span="6" class="leftCol">
+            <el-row class="leftTop">
+              <Broad></Broad>
+            </el-row>
+            <el-row class="leftBottom">
+              <MajorRoll></MajorRoll>
+            </el-row>
           </el-col>
-          <el-col :span="10" class="centerCol"
-            ><div class="grid-content ep-bg-purple-light"
-          /></el-col>
-          <el-col :span="7" class="rightCol">
-            <el-row class="rightTop"></el-row>
+          <el-col :span="12" class="centerCol">
+            <Map></Map>
+          </el-col>
+          <el-col :span="6" class="rightCol">
+            <UserList></UserList>
             <el-row class="rightBottom"></el-row>
           </el-col>
         </el-row>
@@ -30,7 +34,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import Broad from "./component/broad.vue";
+import MajorRoll from "./component/majorRoll.vue";
+import Map from "./component/map.vue";
+import UserList from "./component/userList.vue";
 </script>
 
 <style scoped>
@@ -39,6 +46,8 @@ import { ref } from "vue";
 }
 .el-main {
   background-color: aquamarine;
+  height: 100%;
+  overflow: hidden;
 }
 .el-row:last-child {
   margin-bottom: 0;
@@ -46,7 +55,6 @@ import { ref } from "vue";
 .el-col {
   border-radius: 4px;
 }
-
 .grid-content {
   border-radius: 4px;
   min-height: 36px;
@@ -59,7 +67,7 @@ import { ref } from "vue";
   height: 100%;
 }
 .leftCol {
-  background-color: #fff;
+  background-color: violet;
   height: 100%;
 }
 .borderMain {
@@ -75,7 +83,7 @@ import { ref } from "vue";
 }
 .leftTop {
   background-color: crimson;
-  height: 50%;
+  height: 30%;
 }
 .rightTop {
   background-color: khaki;

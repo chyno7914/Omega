@@ -7,6 +7,7 @@ declare module "*.vue" {
 }
  
 declare module 'qs'
+declare module 'vue-cropper';
 export {}
 declare module 'vue' {
   interface ComponentCustomProperties {
