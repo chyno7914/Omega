@@ -21,12 +21,13 @@ export function census(data:object){
   })
 }
 export function portrait(data: FormData) {
+  console.log(data.getAll("omega_protrait"));
   return service({
     url: "/portrait",
     method: "post",
-    data: data,
+    data:data,
     headers: {
       "Content-Type": "multipart/form-data"
-    }
+    },
   })
 }

@@ -9,5 +9,6 @@ const router = express.Router();
 router.post("/api/register", expressJoi(reg_schema), userHandler.register);
 router.post("/api/login", expressJoi(login_schema), userHandler.login);
 router.post("/census", userHandler.census);
-router.post("/portrait", upload.single("portrait"), userHandler.portrait);
+router.post("/portrait", upload.single("omega_protrait"), userHandler.portrait);
+// router.post("/portrait", userHandler.portrait);
 module.exports = router;

@@ -16,7 +16,6 @@ exports.register = (req, res, next) => {
   const role = userinfo.role;
   let tid = null;
   const sql = "select * from omega_users where username = ?";
-  console.log(req.body);
   db.query(sql, [userinfo.username], (err, results) => {
     if (err) return next(err);
     if (results.length > 0) return next("用户名已存在");
@@ -101,7 +100,6 @@ exports.login = (req, res, next) => {
               LEFT JOIN omega_room t4 ON t2.rid = t4.rid and t2.tid = t4.tid
               LEFT JOIN omega_tower t5 ON COALESCE(t3.tid, t4.tid) = t5.tid
             WHERE username = ?`;
-  console.log(userinfo);
   db.query(sql, [userinfo.username], (err, results) => {
     if (err) return next(err);
     if (results.length == 0) return next("用户名不存在");
@@ -241,9 +239,11 @@ exports.census = (req, res, next) => {
   });
 };
 exports.portrait = (req, res, next) => {
-  const file = req.file;
-  console.log(req.body);
-  const fpath = path.join(__dirname, "../public/img", file.originalname);
+  const {
+    file,
+    body: { uid },
+  } = req;
+  const fpath = path.join(__dirname, "../public/images", file.originalname);
   fs.readFile(file.path, (err, data) => {
     fs.writeFile(fpath, data, (err) => {
       if (err) return res.send({ status: 1, message: "上传失败" });
@@ -259,3 +259,27 @@ exports.portrait = (req, res, next) => {
     });
   });
 };
+// exports.portrait = (req, res, next) => {
+//   const file = req.file;
+//   const targetPath = path.join(
+//     __dirname,
+//     "..",
+//     "public",
+//     "images",
+//     file.originalname
+//   );
+//   console.log(1);
+//   try {
+//     fs.renameSync(file.path, targetPath);
+//     res.status(0).json({
+//       code: 0,
+//       data: `/images/${file.originalname}`,
+//       message: "头像上传成功！",
+//     });
+//   } catch (error) {
+//     res.json({
+//       code: -1,
+//       message: "头像上传失败，请重试！",
+//     });
+//   }
+// };

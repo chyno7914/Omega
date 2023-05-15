@@ -1,3 +1,4 @@
+
 declare module "*.vue" {
     import type { DefineComponent, queuePostFlushCb } from "vue";
 

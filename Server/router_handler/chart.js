@@ -77,7 +77,6 @@ exports.list = (req, res, next) => {
               where sid`;
   db.query(sql, (err, results) => {
     if (err) next(err);
-    console.log(results);
     res.cc(results);
   });
 };

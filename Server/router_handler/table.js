@@ -434,7 +434,6 @@ exports.useFloor = (req, res, next) => {
   db.query(sql, (err, result) => {
     if (err) return next(err);
     if (result[0].status != 404) return res.cc("楼层已激活");
-    console.log(result);
     let status = 400;
     const sql = `update omega_floor set status = ${status} 
                   where floor = ${target} and tid = (
@@ -475,7 +474,6 @@ exports.flat = (req, res, next) => {
                 t1.tid like "%${userinfo.tid}%" desc, tname like "%${userinfo.flat}%" desc,
                 tid desc
                 `;
-  console.log(sql);
   db.query(sql, (err, results) => {
     if (err) return next(err);
     res.cc(results, 0);
@@ -488,7 +486,6 @@ exports.addFlat = (req, res, next) => {
     if (err) return next(err);
     if (results.length) return res.cc("寝室名已被注册");
     const sql = `insert into omega_tower set ?`;
-    console.log(sql, userinfo);
     db.query(
       sql,
       {

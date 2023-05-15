@@ -3,17 +3,18 @@ export function detailSearch(data: string) {
   return service({
     url: "/chart/detail",
     method: "get",
-      params: {
+    params: {
         flat:data
-    }
+    },
+      
   });
 }
 export function broadSearch() {
   return service({
     url: "/chart/broad",
-    method:"get"
-  })
-}
+    method: "get",
+    
+})}
 export function rollSearch() {
   return service({
     url: "/chart/roll",

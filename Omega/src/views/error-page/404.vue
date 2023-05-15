@@ -17,10 +17,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import { reactive, ref } from "vue";
-import type { FormInstance, FormRules } from "element-plus";
-import { ElMessage } from "element-plus";
-import { RouteRecordRaw, useRouter } from "vue-router";
+import { useRouter } from "vue-router";
 const router = useRouter();
 const moveHome = () => {
   router.push("/");

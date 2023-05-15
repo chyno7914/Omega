@@ -106,15 +106,14 @@ import "cropperjs/dist/cropper.css";
 import Cropper from "cropperjs";
 import { ElMessage } from "element-plus";
 import axios from "axios";
-import { createTablePopper } from "element-plus/es/components/table/src/util";
-import { number } from "echarts";
+import { portrait } from "@/api/user";
 const props = withDefaults(
   defineProps<{
-    imgUrl: string;
-    title: string;
-    tips: string;
-    api: string;
-    size: number;
+    imgUrl?: string;
+    title?: string;
+    tips?: string;
+    api?: string;
+    size?: number;
   }>(),
   {
     imgUrl: "",
@@ -170,7 +169,9 @@ const heightScale = ref();
 const uploadDialog = ref(false);
 const fileRef = ref<null | HTMLInputElement>(null);
 const fileName = ref();
-const emit = defineEmits(["upload"]);
+const emit = defineEmits<{
+  (e: "upload", data: any): void;
+}>();
 // 打开弹窗方法
 const openUpload = () => {
   uploadDialog.value = true;
@@ -193,8 +194,8 @@ const submitImage = () => {
     // console.log(env.VITE_BASE_URL, api.value);
     const cas = cropper.value.getCroppedCanvas();
     // const base64url = cas.toDataURL('image/jpeg')
-    cas.toBlob(function (e: any) {
-      imgUrl.value = window.URL.createObjectURL(e);
+    cas.toBlob((e: Blob | null) => {
+      imgUrl.value = window.URL.createObjectURL(e ?? new Blob());
     });
     info.value = cropper.value.getData();
     uploadDialog.value = false;
@@ -205,24 +206,11 @@ const uploadImage = () => {
   if (cropper.value) {
     const ca = cropper.value.getCroppedCanvas();
     const formData = new FormData();
-    ca.toBlob(function (e: any) {
-      formData.append("file", e, fileName.value);
-      http
-        .post(api.value, formData, {
-          baseURL: env.VITE_BASE_URL, // 基础路径
-          headers: {
-            "Content-Type": "multipart/form-data", // 关键
-            token: sessionStorage.getItem("token"),
-          },
-        })
-        .then((res) => {
-          if (res.status == 200) {
-            emit("upload", res.data);
-          }
-        })
-        .catch((error) => {
-          console.log(error);
-        });
+    ca.toBlob((e: Blob | null) => {
+      if (e) {
+        formData.append("omega_protrait", e, fileName.value);
+        portrait(formData).then((res) => emit("upload", res.data));
+      }
     });
   }
 };
