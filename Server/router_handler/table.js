@@ -274,21 +274,23 @@ exports.addRoom = (req, res, next) => {
 exports.adminFloorSearch = (req, res, next) => {
   const { targetFlat } = req.query;
   const sql = `SELECT t1.floor,max_room,IFNULL(use_room,0) use_room,decipher,tag_type 
-              FROM omega_floor t1
-              LEFT JOIN (
-                SELECT FLOOR,COUNT(*) use_room 
-                FROM omega_room 
-                WHERE STATUS IN (300,301,302) 
-                AND number <= (
-                  SELECT max_room 
-                  FROM omega_floor
-                  WHERE omega_floor.floor = omega_room.floor
-                )
-                GROUP BY FLOOR
-              ) t2 ON t1.floor = t2.floor
-              LEFT JOIN omega_tower t3 ON t1.tid = t3.tid
-              LEFT JOIN omega_status t4 ON t1.status = t4.status
-              WHERE tname = "${targetFlat}"`;
+FROM omega_floor t1
+LEFT JOIN (
+ SELECT FLOOR,COUNT(*) use_room 
+ FROM omega_room 
+ WHERE STATUS IN (300,301,302) 
+ AND number <= (
+   SELECT max_room 
+   FROM omega_floor
+   LEFT JOIN omega_tower ON omega_floor.tid = omega_tower.tid 
+   WHERE omega_floor.floor = omega_room.floor
+   AND tname = "${targetFlat}"
+ )
+ GROUP BY FLOOR
+) t2 ON t1.floor = t2.floor
+LEFT JOIN omega_tower t3 ON t1.tid = t3.tid
+LEFT JOIN omega_status t4 ON t1.status = t4.status
+WHERE tname = "${targetFlat}"`;
   db.query(sql, (err, results) => {
     if (err) return next(err);
     res.cc(results, 0);

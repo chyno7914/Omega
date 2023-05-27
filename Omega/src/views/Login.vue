@@ -168,9 +168,13 @@ const submitLogin = async (formEl: FormInstance | undefined) => {
             uid: Zeus.uid,
             rid: Zeus.rid,
             tname: Zeus.flat,
-            tid:Zeus.tid,
+            tid: Zeus.tid,
+            sid: Zeus.sid,
+            username: Zeus.username,
+            sname: Zeus.sname,
             permission: Zeus.permission,
           } = res.data);
+          console.log(res.data);
           router.push("/");
         }
       });

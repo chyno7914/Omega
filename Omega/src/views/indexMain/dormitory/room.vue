@@ -8,7 +8,7 @@
         placeholder="公寓"
         class="filter-item"
         style="width: 160px"
-        v-limit-search="'searchFlat:limit'"
+        v-limit-elsearch="'searchFlat:limit'"
         clearable
       />
       <el-select-v2

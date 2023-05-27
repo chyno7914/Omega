@@ -89,7 +89,10 @@ exports.login = (req, res, next) => {
   const userinfo = req.body;
   const sql = `SELECT 
               t1.uid, 
+              t1.username,
               t2.rid,
+              t2.sid,
+              t2.sname,
               t5.tname,
               t5.tid,
               password
@@ -112,7 +115,7 @@ exports.login = (req, res, next) => {
     const tokenStr = jwt.sign(user, config.jwtSecretKey, {
       expiresIn: "30h",
     });
-    const { uid, rid, tname } = results[0];
+    const { uid, rid, tname, sid, sname, username, tid } = results[0];
     const sql = `SELECT uid,CODE FROM omega_grant
                 RIGHT JOIN omega_order ON omega_grant.role = omega_order.role
                 WHERE uid = ${uid}`;
@@ -123,8 +126,12 @@ exports.login = (req, res, next) => {
         message: "登录成功",
         uid,
         rid,
+        sid,
+        sname,
         tname,
         permission,
+        username,
+        tid,
         token: "Bearer " + tokenStr,
       });
     });

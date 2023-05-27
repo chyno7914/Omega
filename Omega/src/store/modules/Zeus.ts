@@ -5,11 +5,14 @@ export const useZeusStore = defineStore(Names.Zeus,{
         return {
             token: '',
             hasTokenFlag: false,
-            uid: -1,
+            uid: 0,
             username: '',
-            rid: " ",
-            tid:-1,
+            rid: -1,
+            tid: -1,
+            sname:"",
             flat: " ",
+            sid: -1,
+            role:0,
             permission: <Array<String>>[],
         }
     },

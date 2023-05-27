@@ -3,7 +3,7 @@ exports.permission = (req, res, next) => {
   //  "SELECT * FROM omega_route WHERE role IN (SELECT role FROM omega_users WHERE username = ?) or role is null Order By level";
   const proven = req.query;
   const sql =
-    "SELECT * FROM omega_route WHERE role IN (SELECT role FROM omega_grant WHERE uid = ?) or role is null Order By level";
+    "SELECT * FROM omega_route WHERE role IN (SELECT role FROM omega_grant WHERE uid = ?) or role is null Order By level,weight DESC";
   db.query(sql, [proven.uid], (err, results) => {
     if (err) return next(err);
     const route = results;

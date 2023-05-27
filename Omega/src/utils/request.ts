@@ -28,7 +28,6 @@ service.interceptors.request.use((config:OmegaAxiosRequestConfig<any>) => {
       ...config.params
     }
   }
-  console.log(config);
   return config
 }, (error) => {
   return Promise.reject(error)

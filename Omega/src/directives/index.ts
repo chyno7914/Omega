@@ -1,11 +1,11 @@
 import { App } from 'vue';
 import hasShow from './hasShow';
-import limitSearch from './limitSearch'
+import limitElsearch from './limitElSearch'
 import triangle from './triangle';
 // 自定义指令
 const directives = {
   hasShow,
-  limitSearch,
+  limitElsearch,
   triangle
 }
  

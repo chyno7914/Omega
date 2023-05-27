@@ -27,7 +27,16 @@ export const useHermesStore = defineStore(Names.Hermes,{
             }
 
             return str;
+        },
+        formatTimestamp(timestamp: number): string {
+            const date = new Date(timestamp);
+            const year = date.getFullYear();
+            const month = date.getMonth() + 1;
+            const day = date.getDate();
+            const formattedDate = `${year}-${month < 10 ? '0' : ''}${month}-${day < 10 ? '0' : ''}${day}`;
+            return formattedDate;
         }
+
         // 其他情况下可以使用Test.$patch 对store进行修改
     },
 })

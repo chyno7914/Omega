@@ -1,6 +1,11 @@
 <template>
   <div class="box">
-    <router-view></router-view>
+    <router-view v-slot="{ Component }">
+      <keep-alive>
+        <component :is="Component" v-if="$route.meta.stayAlive" />
+      </keep-alive>
+      <component :is="Component" v-if="!$route.meta.stayAlive" />
+    </router-view>
   </div>
 </template>
 <style scoped>
@@ -18,5 +23,6 @@
   width: 100%;
   margin-left: 9px;
   background-color: #fff;
+  overflow: hidden;
 }
 </style>

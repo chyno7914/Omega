@@ -21,7 +21,7 @@
         v-model="searchList.flat"
         filterable
         :options="flatsOptions"
-        v-limit-search="'searchFlat:limit'"
+        v-limit-elsearch="'searchFlat:limit'"
         placeholder="公寓"
         class="filter-item"
         style="width: 160px"
@@ -32,7 +32,7 @@
         style="width: 160px"
         class="filter-item"
         v-model="searchList.room"
-        v-limit-search="'searchRoom:limit'"
+        v-limit-elsearch="'searchRoom:limit'"
         :formatter="(value:string) => value.replace(/[^\d]/g, '')"
         clearable
       />

@@ -75,7 +75,7 @@
 </template>
 
 <script lang="ts" setup>
-import { reactive, ref } from "vue";
+import { reactive, ref, watch } from "vue";
 import type { FormInstance, FormRules } from "element-plus";
 import { useZeusStore, useDemeterStore } from "@/store";
 import { ElMessage } from "element-plus";
@@ -91,6 +91,7 @@ withDefaults(
   }>(),
   {}
 );
+
 const dialogFormVisible = ref(false);
 const roomFormRef = ref<FormInstance>();
 const router = useRouter();

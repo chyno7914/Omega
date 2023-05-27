@@ -1,7 +1,7 @@
 import { hasClass } from "element-plus/es/utils";
 import type { Directive } from "vue"
 import {useZeusStore } from "@/store"
-const limitSearch: Directive<HTMLElement, string> = (el, binding) => {
+const limitMenu: Directive<HTMLElement, string> = (el, binding) => {
     const Zeus = useZeusStore()
     if (Zeus.permission.includes(Zeus.uid + ":" + binding.value)) {
         const bankBorder =   el.firstElementChild as HTMLElement
@@ -19,4 +19,4 @@ const limitSearch: Directive<HTMLElement, string> = (el, binding) => {
         });
     }
 };
-export default limitSearch
+export default limitMenu

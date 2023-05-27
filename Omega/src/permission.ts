@@ -1,9 +1,11 @@
 import router from './router'
 import { permissionConfirm } from "@/api/permission"
+import { continueTokenCheck } from './api/apply'
 import {searchTname} from '@/api/table'
 import { createVNode, render } from 'vue'
 import { useZeusStore, useTESTStore,useAstraeaStore,useDemeterStore ,useHermesStore} from "@/store";
 import loadingBar from './components/generalComponent/loadingBar.vue'
+import { ElMessage } from 'element-plus'
 const loadingBarVnode = createVNode(loadingBar)
 render(loadingBarVnode, document.body)
 router.beforeEach((to, from, next) => {
@@ -14,6 +16,26 @@ router.beforeEach((to, from, next) => {
     if (to.path == '/sign') {
         Zeus.token = ''
         Astraea.$reset()
+    }
+    if (to.path.split('/').includes('apply')) {
+        const { id } = to.query
+        console.log(2);
+        if (typeof id =='string') {
+            (async() => {
+                const {
+                    data: { message, status },
+                } = await continueTokenCheck(id, Zeus.uid);
+                 if (status) {
+      ElMessage({
+        message,
+        type: status ? "error" : "success",
+      });
+
+      router.back();
+    }
+                
+            })()
+        }
     }
     if (Astraea.privilege.includes(to.path)) next()
     else {
@@ -32,6 +54,7 @@ router.beforeEach((to, from, next) => {
                                 alias: eval(track.alias),
                                 redirect: track.redirect,
                                 component: () => Astraea[track.method](),
+                                meta:JSON.parse(track.meta),
                                 children: []
                             })
                         })
