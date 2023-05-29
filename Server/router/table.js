@@ -19,4 +19,6 @@ router.post("/floor/use", tableHandler.useFloor);
 router.post("/floor/edit", tableHandler.editRoom);
 router.get("/flat", tableHandler.flat);
 router.post("/flat/add", tableHandler.addFlat);
+router.post("/chum/leave", tableHandler.chumLeave);
+router.post("/chum/back", tableHandler.chumBack);
 module.exports = router;

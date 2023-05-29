@@ -18,6 +18,7 @@
         placeholder="楼层"
         class="filter-item"
         style="width: 160px"
+        :disabled="!searchList.flat"
         clearable
       />
       <el-input
@@ -264,9 +265,7 @@ const initRoom = async () => {
   const {
     data: { message },
   } = await searchTname();
-  ({
-    data: { ceiling: ceiling.value },
-  } = await searchCeiling(Zeus.flat));
+
   total.value = gross;
   flats.length = 0;
   flats.push(...message.slice());
@@ -338,6 +337,17 @@ const activeRoom = async (rid: number) => {
   fetchRoom();
 };
 fetchRoom();
+watch(
+  () => searchList.flat,
+  async (v) => {
+    ({
+      data: { ceiling: ceiling.value },
+    } = await searchCeiling(v));
+  },
+  {
+    immediate: true,
+  }
+);
 // console.log(total.value);
 </script>
 <style scoped>

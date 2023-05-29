@@ -164,3 +164,21 @@ export function addFlat(data: object) {
 //     }
 //   })
 // }
+export function chumLeave(target: number) {
+  return service({
+    url: "/chum/leave",
+    method: "post",
+    data: {
+      target
+    }
+  })
+}
+export function chumBack(target: number) {
+  return service({
+    url: "/chum/back",
+    method: "post",
+    data: {
+      target
+    }
+  })
+}

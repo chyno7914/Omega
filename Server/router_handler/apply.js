@@ -13,13 +13,15 @@ exports.submitPush = (req, res, next) => {
   const sql = `select * from omega_apply where applId = ${
     userinfo.applId ? userinfo.applId : "NULL"
   }`;
+  console.log(userinfo);
   const speech = (() => {
     if (status == "checking") return "提交";
     else return "保存";
   })();
   db.query(sql, (err, result) => {
     if (err) return next(err);
-    if (result.length == 1) {
+    console.log(result);
+    if (result.length) {
       const sql = `update omega_apply set ? where applId = ?`;
       db.query(
         sql,
@@ -137,23 +139,31 @@ exports.submitDelete = (req, res, next) => {
 };
 exports.gatherItemAttribute = (req, res, next) => {
   const { uid } = req.query;
-  const sql = `SELECT * FROM omega_applitype WHERE accessRight = (
-                SELECT role 
-                FROM omega_users
-                WHERE uid = ${uid}
-              ) OR accessRight IS NULL;`;
+  const sql = `SELECT kind,responsiless FROM omega_applimit t1
+LEFT JOIN omega_users t2 ON t2.role = t1.protagonist
+WHERE uid = ${uid}`;
   db.query(sql, (err, result) => {
     if (err) return next(err);
-    const type = result.map((item) => item.type);
-    const sql = `SELECT * FROM omega_applistatus WHERE accessRight = (
-                SELECT role 
-                FROM omega_users
-                WHERE uid = ${uid}
-              ) OR accessRight IS NULL;`;
-    db.query(sql, (err, result) => {
-      if (err) return next(err);
-      const status = result.map((item) => item.status);
-      res.cc({ type, status }, 0);
-    });
+    res.cc(result, 0);
+  });
+};
+exports.submitDetail = (req, res, next) => {
+  const { target } = req.query;
+  const sql = `SELECT t1.*,t2.sname,t2.rid,t3.tname FROM omega_apply t1
+              LEFT JOIN omega_students t2 ON t1.sid = t2.sid
+              LEFT JOIN omega_tower t3 ON t2.tid = t3.tid
+              WHERE applId = ${target}`;
+  db.query(sql, (err, result) => {
+    if (err) return next(err);
+    res.cc(result[0], 0);
+  });
+};
+exports.aceeptRepair = (req, res, next) => {
+  const { target } = req.body;
+  const sql = `update omega_apply set status = "checked" where applId = ${target}`;
+  db.query(sql, (err, result) => {
+    if (err) return next(err);
+    if (!result.changedRows) return next("applId异常");
+    res.cc("请求受理", 0);
   });
 };

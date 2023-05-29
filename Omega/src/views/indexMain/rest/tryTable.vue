@@ -1,68 +1,69 @@
 <template>
-  <div class="">
-    <el-container>
-      <el-main style="" class="main">
-        {{ searchKey }}
-      </el-main>
-    </el-container>
+  <div class="demo-date-picker">
+    <div class="block">
+      <el-date-picker
+        v-model="value"
+        type="daterange"
+        range-separator="To"
+        start-placeholder="Start date"
+        end-placeholder="End date"
+        value-format="YYYY-MM-DD"
+      />
+    </div>
   </div>
+  {{ value }}
+  <!-- <template>
+  <div class="demo-date-picker">
+    <div class="block">
+      <el-date-picker
+        v-model="value"
+        type="date"
+        placeholder="Pick a Date"
+        value-format="YYYY-MM-DD"
+      />
+    </div>
+  </div>
+  {{ value }}
+</template> -->
 </template>
 
-<script setup lang="ts">
-import { reactive } from "vue";
-import { gatherAttribution } from "@/api/apply";
+<script lang="ts" setup>
+import { ref, watch } from "vue";
 
-type KeySearch = {
-  state: string[];
-  type: string[];
-};
+const size = ref<"default" | "large" | "small">("default");
 
-const searchKey = reactive<KeySearch>({
-  type: [],
-  state: [],
-});
-
-const fetchAttribute = async () => {
-  console.log("函数内");
-
-  const {
-    data: { message },
-  } = await gatherAttribution();
-
-  console.log(message);
-  searchKey.type = message.type;
-  searchKey.state = message.status;
-
-  console.log(searchKey.state);
-  console.log(searchKey.state.length);
-};
-console.log("setup");
-(async () => {
-  await fetchAttribute();
-  console.log(searchKey);
-  console.log(searchKey.state.length);
-})();
+const value = ref("");
+watch(
+  () => value.value,
+  () => {
+    console.log(value.value);
+  }
+);
 </script>
+
 <style scoped>
-.aside {
-  height: 100%;
-  color: #c58282;
+.demo-date-picker {
+  display: flex;
+  width: 100%;
+  padding: 0;
+  flex-wrap: wrap;
+}
+
+.demo-date-picker .block {
+  padding: 30px 0;
   text-align: center;
-  background-image: url("assets/img/backgrund4.jpg");
-  background-repeat: no-repeat;
-  background-size: cover;
-  background-attachment: fixed;
-  background-position: -140px 60px;
+  border-right: solid 1px var(--el-border-color);
+  flex: 1;
 }
-.inactive {
-  background-color: #ccc;
+
+.demo-date-picker .block:last-child {
+  border-right: none;
 }
-.common-layout {
-  height: 100%;
+
+.demo-date-picker .demonstration {
+  display: block;
+  color: var(--el-text-color-secondary);
+  font-size: 14px;
+  margin-bottom: 20px;
 }
-.el-container {
-  height: 94vh;
-}
-/* .active {
-} */
 </style>

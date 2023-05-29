@@ -62,7 +62,6 @@
                             text
                             type="success"
                             style="float: right"
-                            v-has-show="'applyList:progress'"
                             @click="
                               stepsDrawerRef?.showDrawer(
                                 item.sequence,
@@ -71,10 +70,53 @@
                             "
                             >查看进度</el-button
                           >
-                          <el-button text type="success" style="float: right"
+                          <el-button
+                            text
+                            type="success"
+                            style="float: right"
+                            v-show="item.status === 'checking'"
+                            v-has-show="'applyList:acceptance'"
+                            @click="disposeRepair(item.applId)"
                             >受理</el-button
                           >
-                          <el-button text type="success" style="float: right"
+                          <el-button
+                            text
+                            type="success"
+                            style="float: right"
+                            @click="repairDetailRef?.showDialog(item.applId)"
+                            v-show="
+                              item.type === 'repair' && item.status != 'save'
+                            "
+                            >详情</el-button
+                          >
+                          <el-button
+                            text
+                            type="success"
+                            style="float: right"
+                            @click="leaveDetailRef?.showDialog(item.applId)"
+                            v-show="
+                              item.type === 'leave' && item.status != 'save'
+                            "
+                            >详情</el-button
+                          >
+                          <el-button
+                            text
+                            type="success"
+                            style="float: right"
+                            @click="repairDetailRef?.showDialog(item.applId)"
+                            v-show="
+                              item.type === 'swap' && item.status != 'save'
+                            "
+                            >详情</el-button
+                          >
+                          <el-button
+                            text
+                            type="success"
+                            style="float: right"
+                            @click="repairDetailRef?.showDialog(item.applId)"
+                            v-show="
+                              item.type === 'ruin' && item.status != 'save'
+                            "
                             >详情</el-button
                           >
                           <el-button
@@ -160,8 +202,8 @@
       </el-main>
       <el-aside width="300px" style="" class="aside">
         <el-scrollbar>
-          <el-col>
-            <el-row style="height: 50px; margin-top: 20%">
+          <el-col style="margin-top: 20%">
+            <el-row style="height: 50px">
               <el-col :span="12">
                 <el-button
                   style="width: 100%; height: 100%"
@@ -176,6 +218,24 @@
                   :class="switchStateButton('checked')"
                   @click="setState('checked')"
                   >已审核</el-button
+                >
+              </el-col>
+            </el-row>
+            <el-row style="height: 50px" v-has-show="'applyUltraStatus:affirm'">
+              <el-col :span="12">
+                <el-button
+                  style="width: 100%; height: 50px"
+                  :class="switchStateButton('backing')"
+                  @click="setState('backing')"
+                  >待销假</el-button
+                >
+              </el-col>
+              <el-col :span="12">
+                <el-button
+                  style="width: 100%; height: 50px"
+                  :class="switchStateButton('backed')"
+                  @click="setState('backed')"
+                  >已销假</el-button
                 >
               </el-col>
             </el-row>
@@ -257,16 +317,25 @@
   </div>
 
   <StepsDrawer ref="stepsDrawerRef"></StepsDrawer>
+  <RepairDetail ref="repairDetailRef"></RepairDetail>
+  <LeaveDetail ref="leaveDetailRef"></LeaveDetail>
 </template>
 <script setup lang="ts">
 import { ref, reactive, onActivated, watch } from "vue";
 import { useRouter } from "vue-router";
-import { searchSubmit, deleteSubmit, gatherAttribution } from "@/api/apply";
+import {
+  searchSubmit,
+  deleteSubmit,
+  gatherAttribution,
+  acceptRepair,
+} from "@/api/apply";
 import { useZeusStore, useHermesStore } from "@/store";
 import "@wangeditor/editor/dist/css/style.css"; // 引入 css
 import { Editor } from "@wangeditor/editor-for-vue";
 import { IEditorConfig } from "@wangeditor/editor";
 import StepsDrawer from "@/components/customComponents/applist/stepsDrawer.vue";
+import RepairDetail from "@/components/customComponents/applist/repairDetail.vue";
+import LeaveDetail from "@/components/customComponents/applist/leaveDetail.vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import "animate.css";
 type KeySearch = {
@@ -294,18 +363,23 @@ interface DataList {
 }
 const searchKey = reactive<KeySearch>({
   type: [],
-  state: ["checked", "save"],
+  state: [],
 });
-onActivated(async () => {});
+onActivated(async () => {
+  await dataFetch(searchKey);
+});
 const router = useRouter();
 const Zeus = useZeusStore();
 const Hermes = useHermesStore();
+const editorConfig: Partial<IEditorConfig> = {
+  readOnly: true,
+  autoFocus: false,
+  scroll: false,
+};
 
-const editorConfig: Partial<IEditorConfig> = {};
-editorConfig.readOnly = true;
-editorConfig.autoFocus = false;
-editorConfig.scroll = false;
 const stepsDrawerRef = ref<InstanceType<typeof StepsDrawer>>();
+const repairDetailRef = ref<InstanceType<typeof RepairDetail>>();
+const leaveDetailRef = ref<InstanceType<typeof LeaveDetail>>();
 const dataList = reactive<DataList[]>([]);
 const setState = (key: string) => {
   if (searchKey.state.includes(key)) {
@@ -324,7 +398,6 @@ const switchTypeButton = (key: string): string => {
   return searchKey.type.includes(key) ? "inactive" : "";
 };
 const dataFetch = async (data: KeySearch): Promise<void> => {
-  console.log("函数内" + searchKey);
   const {
     data: { message },
   } = await searchSubmit(data.state, data.type, Zeus.tid);
@@ -365,13 +438,36 @@ const clickBoxDelete = (id: number | string) => {
       // 用户点击了 Cancel 按钮，不执行路由跳转
     });
 };
-watch(
-  () => searchKey,
-  () => {
-    dataFetch(searchKey);
-  },
-  { immediate: true, deep: true }
-);
+const fetchAttribution = async () => {
+  const {
+    data: { message },
+  } = await gatherAttribution();
+  for (let { kind, responsiless } of message) {
+    if (kind === "status") {
+      searchKey.state.push(responsiless);
+    } else if (kind === "kind") {
+      searchKey.type.push(responsiless);
+    }
+  }
+  watch(
+    () => searchKey,
+    () => {
+      dataFetch(searchKey);
+    },
+    { immediate: true, deep: true }
+  );
+};
+const disposeRepair = async (target: number) => {
+  const {
+    data: { message, status },
+  } = await acceptRepair(target);
+  ElMessage({
+    message: message,
+    type: status ? "error" : "success",
+  });
+  dataFetch(searchKey);
+};
+fetchAttribution();
 </script>
 <style scoped>
 .aside {

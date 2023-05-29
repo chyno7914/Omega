@@ -50,3 +50,21 @@ export function gatherAttribution() {
         method:"get"
     })
 }
+export function gatherDetail(target:number) {
+    return service({
+        url: "/apply/detail",
+        method: "get",
+        params: {
+            target
+        }
+    })
+}
+export function acceptRepair(target: number) {
+    return service({
+        url: "/apply/accept/repair",
+        method: "post",
+        data: {
+            target
+        }
+    })
+}

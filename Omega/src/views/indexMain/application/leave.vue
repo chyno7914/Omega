@@ -11,7 +11,7 @@
   >
     <span>申请</span>
     <span style="margin: 10px">|</span>
-    <span style="font-size: 25px">报修</span>
+    <span style="font-size: 25px">请假</span>
   </el-col>
   <el-row>
     <el-col :span="18" :offset="3">
@@ -66,12 +66,42 @@
               />
             </el-form-item>
           </el-col>
-          <el-col :span="6" :offset="3"> </el-col>
-          <el-col :span="6" :offset="3"> </el-col>
+          <el-col :span="6" :offset="3">
+            <el-form-item label="目的地" prop="destination">
+              <el-input
+                placeholder="请输入"
+                v-model="dataOther.destination"
+                clearable
+              />
+            </el-form-item>
+          </el-col>
         </el-row>
         <el-row>
           <el-col :span="6">
-            <el-form-item label="报修详情：" prop="text"> </el-form-item>
+            <el-form-item label="交通工具" prop="vehicle">
+              <el-input
+                placeholder="请输入交通工具"
+                v-model="dataOther.vehicle"
+                clearable
+              />
+            </el-form-item>
+          </el-col>
+          <el-col :span="8" :offset="3">
+            <el-form-item label="往返时间" prop="roundTime">
+              <el-date-picker
+                v-model="dataOther.roundTime"
+                type="daterange"
+                range-separator="至"
+                start-placeholder="离校时间"
+                end-placeholder="返校时间"
+                value-format="YYYY-MM-DD"
+              />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="6">
+            <el-form-item label="请假详情：" prop="text"> </el-form-item>
           </el-col>
         </el-row>
 
@@ -153,7 +183,7 @@ type Stencil = {
   valueHtml: string;
   meta: string;
 };
-type Others = {};
+type Others = { destination: string; roundTime: string[]; vehicle: string };
 type FormData = Stencil & Others;
 //富文本编辑器
 const route = useRoute();
@@ -162,7 +192,7 @@ const Zeus = useZeusStore();
 const dataFormRef = ref<FormInstance>();
 // 编辑器实例，必须用 shallowRef
 const editorRef = shallowRef();
-console.log(route.query.id);
+console.log("记录点一" + route.query.id);
 
 const handleCreated = (editor: any) => {
   editorRef.value = editor; // 记录 editor 实例，重要！
@@ -177,7 +207,7 @@ const dataStencil = reactive<Stencil>({
   sname: Zeus.sname,
   tname: Zeus.flat,
   rid: Zeus.rid,
-  type: "repair",
+  type: "leave",
   telephone: "",
   meta: "",
   time: 0,
@@ -189,7 +219,11 @@ const toolbarConfig: Partial<IToolbarConfig> = {
 const editorConfig: Partial<IEditorConfig> = {
   placeholder: "请输入内容...",
 };
-const dataOther = reactive<Others>({});
+const dataOther = reactive<Others>({
+  destination: "",
+  roundTime: [],
+  vehicle: "",
+});
 const dataForm = computed<FormData>(() => {
   return {
     ...dataOther,
@@ -201,6 +235,9 @@ const rules = reactive<FormRules>({
     { required: true, message: "请输入手机号", trigger: "blur" },
     { min: 4, message: "电话号码过短", trigger: "blur" },
   ],
+  destination: { required: true, message: "请输入目的地", trigger: "blur" },
+  vehicle: { required: true, message: "请输入出行方式", trigger: "blur" },
+  roundTime: { required: true, message: "请输入往返时间", trigger: "blur" },
 });
 let copyForm = ref<string>(JSON.stringify(dataStencil));
 // let diftFlag = ref<boolean>(copyForm.value == JSON.stringify(dataStencil));
@@ -226,8 +263,6 @@ const toSave = async (): Promise<void> => {
     });
 
   copyForm.value = JSON.stringify(dataStencil);
-
-  // const {[propName: string]: _, ...data } = dataStencil;
 };
 const submit = async (formEl: FormInstance | undefined): Promise<void> => {
   dataStencil.meta = JSON.stringify(dataOther);
@@ -242,39 +277,37 @@ const submit = async (formEl: FormInstance | undefined): Promise<void> => {
         message: message,
         type: status ? "error" : "success",
       });
+      if (!status) router.push("/applist");
     }
   });
   copyForm.value = JSON.stringify(dataStencil);
 };
 
-// watch(
-//   () => route.path,
-//   (newPath, oldPath) => {
-//     console.log("路由发生变化：", newPath, oldPath);
-//     open();
-//   }
-// );
 const initData = async () => {
   const { id } = route.query;
-  console.log("id:" + id);
-
   if (typeof id === "string") {
     const {
       data: { message: dataList, status },
     } = await continueSubmit(id);
-    console.log(dataList);
     if (!status) {
       dataStencil.telephone = dataList[0].telephone;
       dataStencil.valueHtml = dataList[0].straight;
       dataStencil.applId = dataList[0].applId;
-      console.log("内容：" + dataStencil.valueHtml);
-
+      console.log("id索引1：" + dataStencil.applId);
+      ({
+        destination: dataOther.destination,
+        roundTime: dataOther.roundTime,
+        vehicle: dataOther.vehicle,
+      } = JSON.parse(dataList[0].meta));
+      dataStencil.meta = JSON.stringify(dataOther);
+      console.log(2);
       copyForm.value = JSON.stringify(dataStencil);
-      console.log(copyForm.value);
     }
   }
 };
 initData();
+console.log("id索引2：" + dataStencil.applId);
+
 // 将 next 函数设置为 open 函数的参数
 const open = (next: () => void) => {
   console.log(copyForm.value);
@@ -292,7 +325,7 @@ const open = (next: () => void) => {
     .then(() => {
       ElMessage({
         type: "success",
-        message: "Delete completed",
+        message: "确认跳转",
       });
       // 用户点击了 OK 按钮，执行路由跳转
       next();
@@ -300,20 +333,28 @@ const open = (next: () => void) => {
     .catch(() => {
       ElMessage({
         type: "info",
-        message: "Delete canceled",
+        message: "取消跳转",
       });
       // 用户点击了 Cancel 按钮，不执行路由跳转
     });
 };
 watchEffect(() => {
   console.log(diftFlag.value);
+  console.log("执行" + dataStencil.applId);
 });
 watch(
   () => dataOther,
   (k) => {
     dataStencil.meta = JSON.stringify(k);
+    console.log(3);
   },
   { deep: true }
+);
+watch(
+  () => route.query,
+  (newPath, oldPath) => {
+    initData();
+  }
 );
 // 判断 a 是否等于 1A
 // if (a === 1) {

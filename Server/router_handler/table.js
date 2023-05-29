@@ -46,7 +46,7 @@ exports.chum = (req, res, next) => {
   userinfo.major = userinfo.major ? eval(userinfo.major) : undefined;
   userinfo.grade = userinfo.grade ? eval(userinfo.grade) : undefined;
   userinfo.class = userinfo.class ? eval(userinfo.class) : undefined;
-  const sql = `SELECT uid,sid,sname,t1.rid rid,bid,major,grade,class,tname,decipher,tag_type 'type' 
+  const sql = `SELECT uid,sid,sname,t1.rid rid,bid,major,grade,class,tname,decipher,tag_type 'type',t1.status
                 FROM omega_students t1
                 LEFT JOIN omega_room t2 ON t1.rid = t2.rid and t1.tid = t2.tid
                 LEFT JOIN omega_tower t3 ON t2.tid = t3.tid
@@ -501,5 +501,32 @@ exports.addFlat = (req, res, next) => {
         res.cc("添加成功", 0);
       }
     );
+  });
+};
+exports.chumLeave = (req, res, next) => {
+  const { target } = req.body;
+  const sql = `update omega_apply set status = "save" where sid = ${target} and status = "checking" and type = "leave"`;
+  db.query(sql, (err, result) => {
+    if (err) return next(err);
+    const sql = `update omega_students set status = 201 where sid = ${target}`;
+    db.query(sql, (err, result) => {
+      if (err) next(err);
+      if (!result.changedRows) return next("数据异常");
+      res.cc("修改成功", 0);
+    });
+  });
+};
+exports.chumBack = (req, res, next) => {
+  const { target } = req.body;
+  const sql = `update omega_apply set status = "backed" where sid = ${target} and status = "backing" and type = "leave"`;
+  db.query(sql, (err, result) => {
+    if (err) return next(err);
+    const sql = `update omega_students set status = 200 where sid = ${target}`;
+    console.log(sql);
+    db.query(sql, (err, result) => {
+      if (err) return next(err);
+      if (!result.changedRows) return next("数据异常");
+      res.cc("修改成功", 0);
+    });
   });
 };

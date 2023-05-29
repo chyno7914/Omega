@@ -86,7 +86,7 @@
               <Editor
                 style="height: 300px; overflow-y: hidden"
                 v-model="dataStencil.valueHtml"
-                @onCreated="handleCreated"
+                @onCreated="handleCreated($event)"
                 :defaultConfig="editorConfig"
               />
             </div>
@@ -212,12 +212,19 @@ const toSave = async (): Promise<void> => {
   dataStencil.meta = JSON.stringify(dataOther);
   dataStencil.time = Date.now();
   const {
-    data: { message, status },
+    data: { message, status, id },
   } = await pushSubmit(dataStencil);
   ElMessage({
     message: message,
     type: status ? "error" : "success",
   });
+  if (!dataStencil.applId)
+    router.replace({
+      query: {
+        id,
+      },
+    });
+
   copyForm.value = JSON.stringify(dataStencil);
 
   // const {[propName: string]: _, ...data } = dataStencil;
@@ -235,38 +242,29 @@ const submit = async (formEl: FormInstance | undefined): Promise<void> => {
         message: message,
         type: status ? "error" : "success",
       });
+      if (!status) router.push("/applist");
     }
   });
   copyForm.value = JSON.stringify(dataStencil);
 };
 
-// watch(
-//   () => route.path,
-//   (newPath, oldPath) => {
-//     console.log("路由发生变化：", newPath, oldPath);
-//     open();
-//   }
-// );
 const initData = async () => {
   const { id } = route.query;
-  console.log("id:" + id);
-
   if (typeof id === "string") {
+    console.log("执行重置");
+
     const {
       data: { message: dataList, status },
     } = await continueSubmit(id);
-    console.log(dataList);
     if (!status) {
       dataStencil.telephone = dataList[0].telephone;
       dataStencil.valueHtml = dataList[0].straight;
       dataStencil.applId = dataList[0].applId;
-      console.log("内容：" + dataStencil.valueHtml);
-
       copyForm.value = JSON.stringify(dataStencil);
-      console.log(copyForm.value);
     }
   }
 };
+
 initData();
 // 将 next 函数设置为 open 函数的参数
 const open = (next: () => void) => {
@@ -285,7 +283,7 @@ const open = (next: () => void) => {
     .then(() => {
       ElMessage({
         type: "success",
-        message: "Delete completed",
+        message: "确认跳转",
       });
       // 用户点击了 OK 按钮，执行路由跳转
       next();
@@ -293,13 +291,14 @@ const open = (next: () => void) => {
     .catch(() => {
       ElMessage({
         type: "info",
-        message: "Delete canceled",
+        message: "取消跳转",
       });
       // 用户点击了 Cancel 按钮，不执行路由跳转
     });
 };
 watchEffect(() => {
   console.log(diftFlag.value);
+  console.log("执行" + dataStencil.applId);
 });
 watch(
   () => dataOther,
@@ -307,6 +306,12 @@ watch(
     dataStencil.meta = JSON.stringify(k);
   },
   { deep: true }
+);
+watch(
+  () => route.query,
+  (newPath, oldPath) => {
+    initData();
+  }
 );
 // 判断 a 是否等于 1A
 // if (a === 1) {

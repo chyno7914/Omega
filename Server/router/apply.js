@@ -19,6 +19,8 @@ router.get("/apply/continue", applyHandler.submitContinue);
 router.get("/apply/permission", applyHandler.submitSearchTokenCheck);
 router.get("/apply/attribution", applyHandler.gatherItemAttribute);
 router.post("/apply/delete", applyHandler.submitDelete);
+router.get("/apply/detail", applyHandler.submitDetail);
+router.post("/apply/accept/repair", applyHandler.aceeptRepair);
 //   function (err, req, res, next) {
 //     // 处理上传文件错误，例如文件大小超出限制等
 //     console.error(err);

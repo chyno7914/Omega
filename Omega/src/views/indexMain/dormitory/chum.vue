@@ -184,9 +184,27 @@
       >
         <template #default="scope: any">
           <el-button size="small" @click="">信息</el-button>
-          <el-button size="small" @click="" type="success">离校</el-button>
-          <el-button size="small" @click="" type="success">换寝</el-button>
-          <el-button size="small" @click="" type="success">退寝</el-button>
+          <el-button
+            size="small"
+            @click="setLeave(scope.row.sid)"
+            type="success"
+            v-show="scope.row.status == '200'"
+            >离校</el-button
+          >
+          <el-button
+            size="small"
+            @click="setBack(scope.row.sid)"
+            type="warning"
+            v-show="scope.row.status == '201'"
+            >返校</el-button
+          >
+          <el-button
+            size="small"
+            @click="changeDialogRef.showDialog()"
+            type="success"
+            >换寝</el-button
+          >
+          <el-button size="small" @click="" type="danger">退寝</el-button>
           <el-button
             size="small"
             type="danger"
@@ -214,23 +232,33 @@
       :total="total"
     >
     </el-pagination>
-    <AddDialog :fetchChum="fetchChum" ref="addDialogRef"></AddDialog>
   </div>
+  <AddDialog :fetchChum="fetchChum" ref="addDialogRef"></AddDialog>
+  <ChangeDialog ref="changeDialogRef"></ChangeDialog>
 </template>
 
 <script lang="ts" setup>
-import { estimate, searchTname, gatherChum, deleteChum } from "@/api/table";
+import {
+  estimate,
+  searchTname,
+  gatherChum,
+  deleteChum,
+  chumLeave,
+  chumBack,
+} from "@/api/table";
 import { useHermesStore, useDemeterStore, useZeusStore } from "@/store";
 import { reactive, ref, h, computed } from "vue";
 import { useRoute } from "vue-router";
 import { exportExcel } from "@/utils/exportExcel";
 import AddDialog from "custom/chumTable/addDialog.vue";
+import ChangeDialog from "custom/chumTable/changeDialog.vue";
 import { ElMessageBox, ElMessage } from "element-plus";
 const Hermes = useHermesStore();
 const Demeter = useDemeterStore();
 const Zeus = useZeusStore();
 const route = useRoute();
 const addDialogRef = ref<InstanceType<typeof AddDialog>>();
+const changeDialogRef = ref<InstanceType<typeof ChangeDialog>>();
 let currentPage = ref(1);
 let pageSize = ref(20);
 let total = ref(0);
@@ -275,6 +303,7 @@ const initChum = async () => {
 
   total.value = gross;
   // console.log(total);
+
   flats.length = 0;
   flats.push(...message.slice());
 };
@@ -287,6 +316,7 @@ const fetchChum = async () => {
     flag: false,
     ...searchList,
   });
+  console.log(data);
 
   // tableData.splice(0, tableData.length, ...data);
   chumData.splice(0, chumData.length, ...data.message);
@@ -330,6 +360,26 @@ const removeHandler = (val: string | number) => {
       }
     },
   });
+};
+const setLeave = async (sid: number) => {
+  const {
+    data: { message, status },
+  } = await chumLeave(sid);
+  ElMessage({
+    message: message,
+    type: status ? "error" : "success",
+  });
+  fetchChum();
+};
+const setBack = async (sid: number) => {
+  const {
+    data: { message, status },
+  } = await chumBack(sid);
+  ElMessage({
+    message: message,
+    type: status ? "error" : "success",
+  });
+  fetchChum();
 };
 const exportHandler = () => {
   const titleArr = [
