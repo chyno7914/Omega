@@ -86,6 +86,7 @@ exports.chum = (req, res, next) => {
                     ? ""
                     : "and class in " + toDisperse(userinfo.class)
                 }
+              ${userinfo.ruinFlag == "true" ? "" : "and t1.status != '204'"}
                 order by t2.tid,rid,bid ${eval(userinfo.flag) ? "desc" : "asc"}
                 ${
                   userinfo.pageSize
@@ -134,7 +135,7 @@ exports.tname = (req, res, next) => {
 };
 exports.room = (req, res, next) => {
   const userinfo = req.query;
-  const sql = `SELECT rid,tol_bed,use_bed,tname,decipher,tag_type 'type',t1.tid 
+  const sql = `SELECT distinct rid,tol_bed,use_bed,tname,decipher,tag_type 'type',t1.tid 
                 FROM omega_room t1
                 LEFT JOIN omega_tower t2 ON t1.tid = t2.tid 
                 LEFT JOIN omega_status t3 ON t1.status = t3.status
@@ -155,6 +156,7 @@ exports.room = (req, res, next) => {
                     ? ""
                     : "and t1.floor like " + toPartial(userinfo.floor)
                 }
+                ${userinfo.banFlag == "true" ? "" : "and t1.status != '304'"}
                 ${
                   userinfo.pageSize
                     ? "limit " +
@@ -189,22 +191,28 @@ exports.getFloorCount = (req, res, next) => {
   });
 };
 exports.addRoom = (req, res, next) => {
-  const { flat, ceiling, tally: ideal, tol_bed } = req.body;
-  let { transmitFlag, floor: targetFloor } = req.body;
+  const { flat, tally: ideal, tol_bed } = req.body;
+  let { transmitFlag: transmitDocker, floor: targetFloor } = req.body;
+  let transmitFlag = transmitDocker == "true" ? true : false;
   const sql = `SELECT t7.tid,t5.floor,max_room, IFNULL(number, 0) AS number
               FROM omega_floor t5
               LEFT JOIN (
-              SELECT t1.floor,number 
-              FROM omega_room t1
-              LEFT JOIN omega_tower t2 ON t1.tid = t2.tid
-              WHERE number = (
-              SELECT MAX(number)
-              FROM omega_room t3
-              WHERE t1.floor = t3.floor
-              )AND tname = '${flat}')t6 ON t5.floor = t6.floor
+              SELECT 
+		  t1.floor,
+		  MAX(t1.number) AS number
+		FROM 
+		  omega_room t1
+		  INNER JOIN omega_tower t2 
+		    ON t1.tid = t2.tid
+		WHERE 
+		  t2.tname = '${flat}'
+		GROUP BY 
+		  t1.floor
+             )t6 ON t5.floor = t6.floor
               LEFT JOIN omega_tower t7 ON t5.tid = t7.tid
               WHERE t7.status!= 504
               AND t5.status != 404
+              AND t7.tname = "${flat}"
               ORDER BY FLOOR`;
   db.query(sql, (err, results) => {
     if (err) return next(err);
@@ -241,6 +249,7 @@ exports.addRoom = (req, res, next) => {
       }
       brimFlag = ideal > actual;
       if (!coding.length) return res.cc("无剩余空间，请联系管理员");
+      console.log(coding);
       const sql =
         "INSERT INTO omega_room (rid, floor, number,tol_bed,tid) VALUES ?";
       db.query(sql, [coding], (err, results) => {
@@ -262,6 +271,7 @@ exports.addRoom = (req, res, next) => {
         targetObj.tid,
       ]);
       if (!coding.length) return res.cc("无剩余空间，请联系管理员");
+      console.log(coding);
       const sql =
         "INSERT INTO omega_room (rid, floor, number,tol_bed,tid) VALUES ?";
       db.query(sql, [coding], (err, results) => {
@@ -297,8 +307,9 @@ WHERE tname = "${targetFlat}"`;
   });
 };
 exports.banRoom = (req, res, next) => {
-  const target = req.body.rid;
-  const sql = `select use_bed,status from omega_room where rid = ${target}`;
+  const { target, flat } = req.body;
+  const sql = `select use_bed,t1.status from omega_room t1 left join omega_tower t2 on t1.tid = t2.tid where rid = ${target} and tname = "${flat}"`;
+  console.log(sql);
   db.query(sql, (err, result) => {
     if (err) return next(err);
     if (result[0].use_bed) return res.cc("房间还有剩余住户，请清空房间后禁用");
@@ -527,6 +538,158 @@ exports.chumBack = (req, res, next) => {
       if (err) return next(err);
       if (!result.changedRows) return next("数据异常");
       res.cc("修改成功", 0);
+    });
+  });
+};
+exports.roomGather = (req, res, next) => {
+  const { flat, floor } = req.query;
+  const sql = `select rid from omega_room t1
+              left join omega_tower t2 on t1.tid = t2.tid 
+              where tname = "${flat}"
+              and floor = ${floor}`;
+  db.query(sql, (err, result) => {
+    if (err) return next(err);
+    res.cc(result, 0);
+  });
+};
+exports.bedGather = (req, res, next) => {
+  const { flat, rid } = req.query;
+  const sql = `WITH RECURSIVE seq(id) AS (
+              SELECT 0
+              UNION ALL
+              SELECT id + 1 FROM seq 
+              WHERE id < (
+                SELECT IFNULL(tol_bed,0) 
+                FROM omega_room t1 
+                LEFT JOIN omega_tower t2 ON t1.tid = t2.tid 
+                WHERE tname = '${flat}' AND rid = ${rid}
+              )
+            )
+            SELECT t1.id bid,t2.sid
+            FROM seq t1
+            LEFT JOIN (
+              SELECT omega_students.*
+              FROM omega_students 
+              LEFT JOIN omega_tower ON omega_students.tid = omega_tower.tid
+              WHERE omega_tower.tname =  '${flat}' AND rid = ${rid}
+            ) t2 ON t1.id = t2.bid
+            WHERE id != 0;`;
+  db.query(sql, (err, result) => {
+    if (err) return next(err);
+    res.cc(result, 0);
+  });
+};
+exports.orderChange = (req, res, next) => {
+  const { sid, flat, rid, bid } = req.body;
+  const omega = { flat, rid, bid };
+  const sql = `SELECT sid,bid,t1.rid,t2.tid,t2.tname,t3.tol_bed,t3.use_bed FROM omega_students t1 
+              LEFT JOIN omega_tower t2 ON t1.tid = t2.tid 
+              LEFT JOIN omega_room t3 ON t1.rid = t3.rid AND t1.tid = t3.tid
+              WHERE sid = ${sid} AND t1.status != 204`;
+  db.query(sql, (err, result) => {
+    if (err) return next(err);
+    if (!result.length) return next("用户丢失");
+    const alpha = {
+      tid: result[0].tid,
+      rid: result[0].rid,
+      bid: result[0].bid,
+      sid: result[0].sid,
+      flat: result[0].tname,
+      tolBed: result[0].tol_bed,
+      useBed: result[0].use_bed,
+    };
+    const sql = `SELECT sid,use_bed,tol_bed,t1.tid FROM omega_room t1
+              LEFT JOIN omega_tower t2 ON t1.tid = t2.tid
+              LEFT JOIN (
+                SELECT * FROM omega_students
+                WHERE bid =${bid}
+                AND status != 204
+              ) t3 ON t1.tid = t3.tid AND t1.rid = t3.rid
+              WHERE tname = "${flat}" 
+              AND t1.rid = ${rid}
+              AND ${bid} <= tol_bed
+              AND t1.status != 304
+              `;
+    db.query(sql, (err, result) => {
+      if (err) return next(err);
+      if (!result.length) return next("目标丢失");
+      if (result[0].sid == sid) return next("请不要自己换自己来愚弄我");
+      omega.useBed = result[0].use_bed;
+      omega.tolBed = result[0].tol_bed;
+      omega.tid = result[0].tid;
+      const target = result[0].sid;
+      if (result[0].sid) {
+        const sql = `UPDATE omega_students
+                  SET tid = CASE sid
+                            WHEN ${target} THEN "${alpha.tid}"
+                            WHEN ${sid} THEN "${omega.tid}"
+                            ELSE tid
+                          END,
+                      rid = CASE sid
+                            WHEN ${target} THEN "${alpha.rid}"
+                            WHEN ${sid} THEN "${omega.rid}"
+                            ELSE rid
+                          END,
+                      bid = CASE sid
+                            WHEN ${target} THEN "${alpha.bid}"
+                            WHEN ${sid} THEN "${omega.bid}"
+                            ELSE bid
+                          END
+                  WHERE sid IN (${sid}, ${target});`;
+        db.query(sql, (err, result) => {
+          if (err) return next(err);
+          res.cc("交换成功", 0);
+        });
+      } else {
+        const sql = `UPDATE omega_students
+                    SET tid = ${omega.tid}, rid = ${rid}, bid = ${bid}
+                    WHERE sid = ${sid};`;
+        db.query(sql, (err, result) => {
+          if (err) return next(err);
+          if (alpha.tid == omega.tid && alpha.rid == omega.rid)
+            return res.cc("交换成功", 0);
+          let status = 300;
+          alpha.useBed--;
+          if (!alpha.useBed) status = 301;
+          const sql = `update omega_room set status = ${status},use_bed = use_bed-1 where rid = ${alpha.rid} and tid = ${alpha.tid}`;
+          db.query(sql, (err, result) => {
+            if (err) return next(err);
+            if (!result.changedRows) return next("无效修改");
+            let status = 300;
+            omega.useBed++;
+            if (omega.useBed == omega.tolBed) status = 302;
+            const sql = `update omega_room set status = ${status},use_bed = use_bed+1 where rid = ${omega.rid} and tid = ${omega.tid}`;
+            db.query(sql, (err, result) => {
+              if (err) return next(err);
+              if (!result.changedRows) return next("无效修改");
+              res.cc("交换成功", 0);
+            });
+          });
+        });
+      }
+    });
+  });
+};
+exports.chumRuin = (req, res, next) => {
+  const { target } = req.body;
+  const sql = `select uid from omega_students where sid = ${target}`;
+  db.query(sql, (err, result) => {
+    if (err) return next(err);
+    const uid = result[0].uid;
+    const sql = `update omega_students set status = "204" where sid = ${target}`;
+    db.query(sql, (err, result) => {
+      if (err) return next(err);
+      if (!result.changedRows) return next("参数异常");
+      const sql = `update omega_room t1 left join omega_students t2 on t1.rid = t2.rid and t1.tid = t2.tid set use_bed = use_bed-1 where sid = ${target}`;
+      db.query(sql, (err, result) => {
+        if (err) return next(err);
+        if (!uid) return res.cc("操作成功", 0);
+        const sql = `update omega_users set role = 4 where uid = ${uid}`;
+        db.query(sql, (err, result) => {
+          if (err) return next(err);
+          res.cc("操作成功", 0);
+        });
+      });
     });
   });
 };

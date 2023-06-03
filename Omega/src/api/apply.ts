@@ -68,3 +68,30 @@ export function acceptRepair(target: number) {
         }
     })
 }
+export function submitRevocation(target: number,antistop:string) {
+    return service({
+        url: "/apply/revocation",
+        method: "post",
+        data: {
+            target,antistop
+        }
+    })
+}
+export function acceptLeave(target: number) {
+    return service({
+        url: "/apply/accept/leave",
+        method: "post",
+        data: {
+            target
+        }
+    })
+}
+export function acceptComing(target: number) {
+    return service({
+        url: "/apply/accept/homecoming",
+        method: "post",
+        data: {
+            target
+        }
+    })
+}

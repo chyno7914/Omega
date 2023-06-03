@@ -209,7 +209,27 @@ const uploadImage = () => {
     ca.toBlob((e: Blob | null) => {
       if (e) {
         formData.append("omega_protrait", e, fileName.value);
-        portrait(formData).then((res) => emit("upload", res.data));
+        portrait(formData).then((res) => {
+          emit("upload", res.data);
+          //   ElMessage({
+          //   message: res.data.status
+          //     ? res.data.message
+          //     : `${censusForm.sname},${res.data.message}`,
+          //   type: res.data.status ? "error" : "success",
+          // });
+          // 上传成功，将组件回复到初始状态
+          imgUrl.value = "";
+          tips.value = "";
+          isCreate.value = false;
+          cropperHeight.value = null;
+          cropperWidth.value = null;
+          widthScale.value = null;
+          heightScale.value = null;
+          if (cropper.value) {
+            cropper.value.destroy();
+            cropper.value = null;
+          }
+        });
       }
     });
   }

@@ -99,7 +99,12 @@ exports.submitSearch = (req, res, next) => {
                   FROM omega_students t6
                   LEFT JOIN omega_tower t7 ON t6.tid = t7.tid 
                 ) t5 ON t5.sid = t1.sid
-                WHERE ${flag ? "t5.tid" : "t1.uid"} = ${flag ? tid : uid}
+                WHERE 1
+                 ${
+                   tid == 0
+                     ? ""
+                     : `AND ${flag ? "t5.tid" : "t1.uid"} = ${flag ? tid : uid}`
+                 }
                   ${
                     searchStatus
                       ? `AND t1.status NOT IN (${db.escape(searchStatus)})`
@@ -112,7 +117,7 @@ exports.submitSearch = (req, res, next) => {
                  }
                 order by timestamp desc
                 `;
-
+    console.log(sql);
     db.query(sql, (err, result) => {
       if (err) return next(err);
       // result.straight = decodeURIComponent(removeQuotes(result.straight));
@@ -164,6 +169,57 @@ exports.aceeptRepair = (req, res, next) => {
   db.query(sql, (err, result) => {
     if (err) return next(err);
     if (!result.changedRows) return next("applId异常");
+    console.log(result);
     res.cc("请求受理", 0);
+  });
+};
+exports.submitRevocation = (req, res, next) => {
+  const { target, antistop } = req.body;
+  const sql = `update omega_apply set status = "save" where applId = ${target}`;
+  db.query(sql, (err, result) => {
+    if (err) return next(err);
+    res.cc(`${antistop}成功`, 0);
+  });
+};
+exports.aceeptLeave = (req, res, next) => {
+  const { target } = req.body;
+  const sql = `SELECT sid FROM omega_apply WHERE applId = ${target}`;
+  db.query(sql, (err, result) => {
+    if (err) return next(err);
+    if (!result.length) return next("数据异常");
+    console.log(result[0]);
+    const sid = result[0].sid;
+    const sql = `update omega_apply set status = "backing" where applId = ${target}`;
+    db.query(sql, (err, result) => {
+      if (err) return next(err);
+      if (!result.changedRows) return next("applId异常");
+      const sql = `update omega_students set status = '201' where sid = ${sid}`;
+      db.query(sql, (err, result) => {
+        if (err) return next(err);
+        if (!result.changedRows) return next("applId异常");
+        res.cc("用户已离校", 0);
+      });
+    });
+  });
+};
+exports.homecoming = (req, res, next) => {
+  const { target } = req.body;
+  const sql = `SELECT sid FROM omega_apply WHERE applId = ${target}`;
+  db.query(sql, (err, result) => {
+    if (err) return next(err);
+    if (!result.length) return next("数据异常");
+    console.log(result[0]);
+    const sid = result[0].sid;
+    const sql = `update omega_apply set status = "backed" where applId = ${target}`;
+    db.query(sql, (err, result) => {
+      if (err) return next(err);
+      if (!result.changedRows) return next("applId异常");
+      const sql = `update omega_students set status = '200' where sid = ${sid}`;
+      db.query(sql, (err, result) => {
+        if (err) return next(err);
+        if (!result.changedRows) return next("applId异常");
+        res.cc("已确认返校", 0);
+      });
+    });
   });
 };

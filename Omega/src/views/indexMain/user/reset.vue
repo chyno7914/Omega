@@ -1,135 +1,255 @@
 <template>
-  <div class="box">
-    <div class="Card">
-      <div class="loginCard">
-        <el-card>
-          <el-form
-            ref="regFormRef"
-            :model="regForm"
-            label-width="100px"
-            :rules="rules"
-            class="demo-ruleForm"
-            status-icon
-            :hide-required-asterisk="true"
+  <el-col
+    :offset="1"
+    style="
+      display: flex;
+      align-items: center;
+      margin-bottom: 5px;
+      padding-top: 5px;
+    "
+  >
+    <span>个人信息</span>
+    <span style="margin: 10px">|</span>
+    <span style="font-size: 25px">设置</span>
+  </el-col>
+  <el-row style="padding-top: 2%">
+    <el-col :span="18" :offset="3">
+      <el-row>
+        <el-col :span="2">修改头像：</el-col>
+        <el-col :span="4">
+          <el-avatar :size="150" :src="Zeus.portrait" />
+        </el-col>
+        <el-col :span="4">
+          <PhotoCut ref="photoCutRef" @upload="changePortrait"></PhotoCut>
+        </el-col>
+        <el-col :span="4">
+          <el-button
+            @click="photoCutRef?.uploadImage()"
+            @update="showData"
+            style="margin-top: 50%"
+            >确认修改</el-button
           >
-            <el-form-item label="旧密码：" prop="password">
-              <el-input v-model="regForm.password" type="password" />
-            </el-form-item>
-            <el-form-item label="确认密码：" prop="confirm">
-              <el-input v-model="regForm.confirm" type="password" />
-            </el-form-item>
-
-            <el-form-item>
-              <el-button type="primary" @click="submitReg(regFormRef)" round
-                >注册</el-button
-              >
-              <el-button @click="resetForm(regFormRef)" round>重置</el-button>
+        </el-col>
+      </el-row>
+      <el-row style="height: 50px; margin-top: 15px">
+        <el-col :span="2">UID：</el-col>
+        <el-col :span="4">
+          {{ Zeus.uid }}
+        </el-col>
+        <el-col :span="2">权限：</el-col>
+        <el-col :span="4">
+          <el-tag>
+            {{ appellation }}
+          </el-tag>
+        </el-col>
+      </el-row>
+      <el-row style="height: 50px">
+        <el-col :span="2">用户名：</el-col>
+        <el-col :span="4">
+          <el-form
+            ref="justUsernameRef"
+            :model="justUsername"
+            :rules="nameRules"
+          >
+            <el-form-item prop="omega">
+              <el-input v-model="justUsername.omega"></el-input>
             </el-form-item>
           </el-form>
-          <a
-            href="javascript:void(0);"
-            @click="enterChange(regFormRef)"
-            v-show="!enterType"
+        </el-col>
+        <el-col :span="4">
+          <el-button @click="changeUsername(justUsernameRef)"
+            >确认修改</el-button
           >
-            去登录->
-          </a>
-        </el-card>
-      </div>
-    </div>
-  </div>
+        </el-col>
+      </el-row>
+      <el-row style="height: 50px" v-has-show="'profile:studentenausweis'">
+        <el-col :span="2">姓名：</el-col>
+        <el-col :span="4"> {{ studentenausweis.sname }} </el-col>
+        <el-col :span="2">学号：</el-col>
+        <el-col :span="4"> {{ studentenausweis.sid }} </el-col>
+      </el-row>
+      <el-row style="height: 50px" v-has-show="'profile:studentenausweis'">
+        <el-col :span="2">出生日期：</el-col>
+        <el-col :span="4"> {{ studentenausweis.birth }} </el-col>
+        <el-col :span="2">户籍：</el-col>
+        <el-col :span="4"> {{ studentenausweis.cencus }} </el-col>
+      </el-row>
+      <el-row style="height: 50px" v-has-show="'profile:studentenausweis'">
+        <el-col :span="2">寝室：</el-col>
+        <el-col :span="4">
+          {{ studentenausweis.tname }} - {{ studentenausweis.rid }}</el-col
+        >
+      </el-row>
+      <el-row style="height: 50px">
+        <el-col :span="2">密码：</el-col>
+        <el-col :span="4">
+          <el-button @click="passwordDialogRef?.showDialog()"
+            >修改密码</el-button
+          >
+        </el-col>
+      </el-row>
+      <el-row style="">
+        <el-col>
+          <el-row>
+            <el-col :span="2">电话号码：</el-col>
+            <el-col :span="4">
+              <el-input v-model="justPhone.alpha" disabled></el-input>
+            </el-col>
+          </el-row>
+
+          <el-row style="margin-top: 10px">
+            <el-col :span="4" :offset="2"
+              ><el-form
+                ref="justPhoneRef"
+                :model="justPhone"
+                :rules="phoneRules"
+              >
+                <el-form-item prop="omega">
+                  <el-input
+                    v-model="justPhone.omega"
+                    :formatter="(value:string) => value.replace(/[^\d]/g, '')"
+                  ></el-input>
+                </el-form-item>
+              </el-form>
+            </el-col>
+            <el-col :span="1">
+              <el-button @click="changeTelephone(justPhoneRef)">确认</el-button>
+            </el-col>
+          </el-row>
+        </el-col>
+      </el-row>
+    </el-col>
+  </el-row>
+  <PasswordDialog ref="passwordDialogRef"></PasswordDialog>
 </template>
 
 <script setup lang="ts">
-import { reactive, ref } from "vue";
+import { reactive, ref, watch } from "vue";
 import type { FormInstance, FormRules } from "element-plus";
 import { ElMessage } from "element-plus";
 import { RouteRecordRaw, useRouter } from "vue-router";
-import { login, register } from "@/api/user";
+import { cureUser, setUsername, setTelephone } from "@/api/user";
 import { useZeusStore, useAstraeaStore } from "@/store";
+import PhotoCut from "components/generalComponent/photoCut.vue";
+import PasswordDialog from "components/customComponents/reset/passwordDialog.vue";
+import moment from "moment";
 let enterType = ref<boolean>(true);
 const Zeus = useZeusStore();
 const Astraea = useAstraeaStore();
 const regStatus = ref(1);
-const loginFormRef = ref<FormInstance>();
-const regFormRef = ref<FormInstance>();
+const justUsernameRef = ref<FormInstance>();
+const justPhoneRef = ref<FormInstance>();
+const passwordDialogRef = ref<InstanceType<typeof PasswordDialog>>();
 const router = useRouter();
-const loginForm = reactive({
-  username: "user",
-  password: "123456",
+const justUsername = reactive({
+  omega: Zeus.username,
+  alpha: Zeus.username,
 });
-const regForm = reactive({
-  username: "",
-  password: "",
-  confirm: "",
-  role: null,
+let appellation = ref();
+const studentenausweis = reactive({
+  birth: "",
+  cencus: "",
+  gender: null,
+  rid: "",
   sid: "",
-  tcode: "",
-  telephone: "",
+  sname: "",
+  tname: "",
 });
-const passwordCheck = (rule: any, value: any, callback: any) => {
-  if (value === "") {
-    callback(new Error("请确认密码"));
-  } else if (value !== regForm.password) {
-    callback(new Error("密码确认失败"));
-  } else {
-    callback();
-  }
-};
-const rules = reactive<FormRules>({
-  username: [
-    { required: true, message: "请输入账号", trigger: "blur" },
-    { min: 1, max: 16, message: "账号须在1至16位之间", trigger: "blur" },
-  ],
-  password: [
-    { required: true, message: "请输入密码", trigger: "blur" },
-    { min: 6, max: 18, message: "密码须在6至18位之间", trigger: "blur" },
-  ],
-  confirm: [{ validator: passwordCheck, trigger: "blur" }],
-  role: [{ required: true, message: "请选择身份", trigger: "change" }],
-  tcode: [
-    { required: !!regForm.role, message: "请输入身份校验码", trigger: "blur" },
-  ],
-  telephone: [
-    { required: true, message: "请输入手机号", trigger: "blur" },
-    { min: 11, max: 11, message: "手机号格式输入错误", trigger: "blur" },
-  ],
+const justPhone = reactive({
+  alpha: "",
+  omega: "",
 });
-const submitLogin = async (formEl: FormInstance | undefined) => {
-  if (!formEl) return;
-  await formEl.validate((valid, fields) => {
-    if (valid) {
-      login(loginForm).then((res) => {
-        ElMessage({
-          message: res.data.message,
-          type: res.data.status ? "error" : "success",
-        });
-        if (!res.data.status) {
-          Zeus.token = res.data.token;
-          // Astraea.route = res.data.route;
-          Zeus.username = loginForm.username;
-          router.push("/");
-        }
-      });
-    }
-  });
+const photoCutRef = ref<InstanceType<typeof PhotoCut>>();
+const showData = (data: any) => {
+  console.log(data, 1);
 };
-const submitReg = async (formEl: FormInstance | undefined) => {
-  if (!formEl) return;
-  await formEl.validate((valid, fields) => {
-    if (valid) {
-      register(regForm).then((res) => {
-        ElMessage({
-          message: res.data.message,
-          type: res.data.status ? "error" : "success",
-        });
-        if (!res.data.status) {
-          enterType.value = !enterType.value;
-        }
-      });
-    }
-  });
-};
+const initData = async () => {
+  const {
+    data: {
+      message: { call, telephone, user_pic, birth, ...orthers },
+    },
+  } = await cureUser();
+  ({
+    census: studentenausweis.cencus,
+    gender: studentenausweis.gender,
+    rid: studentenausweis.rid,
+    sid: studentenausweis.sid,
+    sname: studentenausweis.sname,
+    tname: studentenausweis.tname,
+  } = orthers);
+  studentenausweis.birth = moment(birth).format("YYYY-MM-DD");
+  console.log(studentenausweis.birth);
 
+  Zeus.portrait = Zeus.setPortrait(user_pic);
+  appellation.value = call;
+  justPhone.alpha = telephone;
+};
+const phoneRules = reactive<FormRules>({
+  omega: [
+    { required: true, message: "请输入手机号", trigger: "blur" },
+    {
+      min: 11,
+      max: 11,
+      message: "手机号格式输入错误，长度为11位",
+      trigger: "blur",
+    },
+  ],
+});
+const nameRules = reactive<FormRules>({
+  omega: [
+    { required: true, message: "请输入用户名", trigger: "blur" },
+    { min: 1, max: 16, message: "用户名须在1至16位之间", trigger: "blur" },
+  ],
+});
+const changePortrait = (data: any) => {
+  Zeus.portrait = Zeus.setPortrait(data.src);
+  ElMessage({
+    message: data.message,
+    type: data.status ? "error" : "success",
+  });
+};
+const changeUsername = async (formEl: FormInstance | undefined) => {
+  if (!formEl) return;
+  if (justUsername.omega == justUsername.alpha) return;
+  console.log(justUsername.omega);
+
+  await formEl.validate(async (valid, fields) => {
+    if (valid) {
+      const {
+        data: { message, status },
+      } = await setUsername(justUsername.omega);
+
+      //   .then((res) => {
+      ElMessage({
+        message: message,
+        type: status ? "error" : "success",
+      });
+      if (!status) justUsername.alpha = justUsername.omega;
+      // });
+    }
+  });
+};
+const changeTelephone = async (formEl: FormInstance | undefined) => {
+  if (!formEl) return;
+  await formEl.validate(async (valid, fields) => {
+    if (valid) {
+      const {
+        data: { message, status },
+      } = await setTelephone(justPhone.omega);
+
+      //   .then((res) => {
+      ElMessage({
+        message: message,
+        type: status ? "error" : "success",
+      });
+      if (!status) {
+        justPhone.alpha = justPhone.omega;
+        justPhone.omega = "";
+      }
+      // });
+    }
+  });
+};
 const resetForm = (formEl: FormInstance | undefined) => {
   if (!formEl) return;
   formEl.resetFields();
@@ -138,6 +258,7 @@ const enterChange = (formEl: FormInstance | undefined) => {
   enterType.value = !enterType.value;
   resetForm(formEl);
 };
+initData();
 </script>
 
 <style scoped>

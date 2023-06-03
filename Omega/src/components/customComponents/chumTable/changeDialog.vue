@@ -1,221 +1,253 @@
 <template>
   <!-- Form -->
-  <el-dialog
-    v-model="dialogFormVisible"
-    title="添加数据"
-    width="40%"
-    lock-scroll
-  >
-    <el-form
-      ref="censusFormRef"
-      :model="censusForm"
-      status-icon
-      :rules="rules"
-      label-width="120px"
-      class="demo-ruleForm"
-      :hide-required-asterisk="true"
-    >
-      <el-col :span="12">
-        <el-form-item label="学号" prop="sid">
-          <el-input v-model="censusForm.sid" />
-        </el-form-item>
-      </el-col>
-      <el-col :span="12">
-        <el-form-item label="姓名" prop="sname">
-          <el-input v-model="censusForm.sname" />
-        </el-form-item>
-      </el-col>
-
-      <el-col>
-        <el-form-item label="性别" prop="gender">
-          <el-radio-group v-model="censusForm.gender" class="ml-4">
-            <el-radio label="1">男</el-radio>
-            <el-radio label="0">女</el-radio>
-          </el-radio-group>
-        </el-form-item>
-      </el-col>
-      <el-col :span="24">
-        <el-form-item label="出生日期" prop="birth">
-          <el-date-picker
-            v-model="censusForm.birth"
-            type="date"
-            placeholder="选择日期"
-            :disabled-date="disabledDate"
-          />
-        </el-form-item>
-      </el-col>
-      <el-col :span="24">
-        <el-form-item label="户籍" prop="census">
-          <el-select-v2
-            v-model="censusForm.census"
-            filterable
-            :options="provincesOptions"
-            placeholder="请确认户籍"
-            style="width: 240px"
-          />
-        </el-form-item>
-      </el-col>
-      <el-col :span="24">
-        <el-form-item label="专业" prop="major">
-          <el-select-v2
-            v-model="censusForm.major"
-            filterable
-            :options="majorsOptions"
-            placeholder="请输入专业"
-            style="width: 240px"
-          />
-        </el-form-item>
-      </el-col>
-      <el-col :span="24">
-        <el-form-item label="年级" prop="grade">
-          <el-select-v2
-            v-model="censusForm.grade"
-            filterable
-            :options="gradesOptions"
-            placeholder="请输入年级"
-            style="width: 240px"
-            :disabled="!censusForm.major"
-          />
-        </el-form-item>
-      </el-col>
-      <el-col :span="24">
-        <el-form-item label="班级" prop="class">
-          <el-select-v2
-            v-model="censusForm.class"
-            filterable
-            :options="classesOptions"
-            placeholder="请输入班级"
-            style="width: 240px"
-            :disabled="!censusForm.grade"
-          />
-        </el-form-item>
-      </el-col>
+  <el-dialog v-model="dialogFormVisible" title="换寝" width="50%" lock-scroll>
+    <el-form ref="searchFormRef" :model="searchList" :rules="rules">
+      <el-row style="height: 40px">
+        <el-col :span="5">
+          <el-form-item prop="flat">
+            <el-select-v2
+              v-model="searchList.flat"
+              filterable
+              :options="flatsOption"
+              placeholder="公寓"
+              class="filter-item"
+              v-limit-elsearch="'searchFlat:limit'"
+              clearable
+            />
+          </el-form-item>
+        </el-col>
+        <el-col :span="5" :offset="1">
+          <el-form-item prop="floor">
+            <el-select-v2
+              v-model="searchList.floor"
+              filterable
+              :disabled="!searchList.flat"
+              :options="floorsOption"
+              placeholder="楼层"
+              class="filter-item"
+              clearable
+            />
+          </el-form-item>
+        </el-col>
+        <el-col :span="5" :offset="1">
+          <el-form-item prop="rid">
+            <el-select-v2
+              v-model="searchList.rid"
+              filterable
+              :disabled="!searchList.floor"
+              :options="roomsOption"
+              placeholder="房间"
+              class="filter-item"
+              clearable
+            />
+          </el-form-item>
+        </el-col>
+        <el-col :span="5" :offset="1">
+          <el-form-item prop="bid">
+            <el-select-v2
+              v-model="searchList.bid"
+              filterable
+              :options="bedsOption"
+              :disabled="!searchList.rid"
+              placeholder="床位"
+              class="filter-item"
+              clearable
+            >
+              <template #default="{ item }">
+                <span>{{ item.value }}</span>
+                <span
+                  style="
+                    color: var(--el-text-color-secondary);
+                    margin-left: 7px;
+                  "
+                >
+                  {{ item.ultra }}
+                </span>
+              </template>
+            </el-select-v2>
+          </el-form-item>
+        </el-col>
+      </el-row>
     </el-form>
+
     <template #footer>
       <span class="dialog-footer">
-        <el-button type="primary" @click="submitCensus(censusFormRef)"
+        <el-button type="primary" @click="submitForm(searchFormRef)"
           >提交</el-button
         >
-        <el-button @click="resetForm(censusFormRef)">取消</el-button>
+        <el-button @click="resetForm(searchFormRef)">取消</el-button>
       </span>
     </template>
   </el-dialog>
 </template>
 
 <script lang="ts" setup>
-import { reactive, ref } from "vue";
+import { reactive, ref, watch } from "vue";
 import type { FormInstance, FormRules } from "element-plus";
 import { useZeusStore, useDemeterStore } from "@/store";
 import { ElMessage } from "element-plus";
-import { census } from "@/api/user";
+import { FullScreen, Aim } from "@element-plus/icons-vue";
+import {
+  searchTname,
+  searchCeiling,
+  gatherRoomByFloor,
+  gatherBedByRoom,
+  changeOrder,
+} from "@/api/table";
 import { useRouter } from "vue-router";
 defineExpose({
-  showDialog: () => (dialogFormVisible.value = true),
+  showDialog: async (target: number) => {
+    dialogFormVisible.value = true;
+    sid.value = target;
+    const {
+      data: { message },
+    } = await searchTname();
+    flatsOption.splice(
+      0,
+      flatsOption.length,
+      ...message.map((item: string) => ({
+        value: item,
+        label: item,
+      }))
+    );
+  },
 });
-// const props = withDefaults(
-//   defineProps<{
-//     fetchChum: () => void;
-//   }>(),
-//   {}
-// );
+const props = withDefaults(
+  defineProps<{
+    fetchChum: () => void;
+  }>(),
+  {}
+);
 const dialogFormVisible = ref(false);
-const censusFormRef = ref<FormInstance>();
+const searchFormRef = ref<FormInstance>();
 const router = useRouter();
 const Zeus = useZeusStore();
 const Demeter = useDemeterStore();
 const disabledDate = (time: Date) => {
   return time.getTime() > Date.now();
 };
-const censusForm = reactive({
-  sid: <number | null>null,
-  sname: "",
-  gender: "",
-  birth: "Sat Jan 01 2000 00:00:00 GMT+0800 (中国标准时间)",
-  census: null,
-  major: null,
-  grade: null,
-  class: null,
+const sid = ref<number>();
+const flatsOption: Array<{ value: string; label: string }> = reactive([]);
+const floorsOption: Array<{ value: number; label: number }> = reactive([]);
+const roomsOption: Array<{ value: number; label: number }> = reactive([]);
+const bedsOption: Array<{ value: number; label: number }> = reactive([]);
+const searchList = reactive({
+  flat: Zeus.flat ?? "",
+  floor: "",
+  rid: "",
+  bid: "",
 });
 const rules = reactive<FormRules>({
-  sid: [
-    { required: true, message: "请输入学号", trigger: "blur" },
-    {
-      pattern: "^[0-9]*$",
-      message: "学号仅支持输入数字",
-      trigger: "blur",
-    },
-    {
-      min: 5,
-      max: 12,
-      message: "学号长度于5至12位之间",
-      trigger: "blur",
-    },
-  ],
-  sname: [
-    { required: true, message: "请输入姓名", trigger: "blur" },
-    {
-      pattern: /^[\u4e00-\u9fa5a-zA-Z_]+$/,
-      message: "该字段只能由汉字、字母和下划线组成",
-      trigger: "blur",
-    },
-    {
-      max: 12,
-      message: "字符串长度越界",
-      trigger: "blur",
-    },
-  ],
-  gender: [{ required: true, message: "请输入性别", trigger: "change" }],
-  birth: [{ required: true, message: "请输入出生日期", trigger: "change" }],
-  census: [
-    { required: true, message: "请输入户籍所在省份", trigger: "change" },
-  ],
-  major: [{ required: true, message: "请输入专业", trigger: "change" }],
-  grade: [{ required: true, message: "请输入专业", trigger: "change" }],
-  class: [{ required: true, message: "请输入专业", trigger: "change" }],
+  flat: [{ required: true, message: "请输入目标宿舍", trigger: "change" }],
+  floor: [{ required: true, message: "请输入目标楼层", trigger: "change" }],
+  rid: [{ required: true, message: "请输入目标房间", trigger: "change" }],
+  bid: [{ required: true, message: "请输入目标床位", trigger: "change" }],
 });
-const provincesOptions = Demeter.provinces.map((_, idx) => ({
-  value: _,
-  label: _,
-}));
-const majorsOptions = Demeter.majors.map((_, idx) => ({
-  value: _,
-  label: _,
-}));
-const classesOptions = Demeter.classes.map((_, idx) => ({
-  value: _,
-  label: _,
-}));
-const gradesOptions = Demeter.grades.map((_, idx) => ({
-  value: _,
-  label: _,
-}));
 const resetForm = (formEl: FormInstance | undefined) => {
   if (!formEl) return;
   dialogFormVisible.value = false;
   formEl.resetFields();
 };
-const submitCensus = async (formEl: FormInstance | undefined) => {
+const submitForm = async (formEl: FormInstance | undefined) => {
   if (!formEl) return;
-  await formEl.validate((valid) => {
+  await formEl.validate(async (valid, fields) => {
     if (valid) {
-      // alert(new Date(censusForm.birth));
-      census(censusForm).then((res) => {
+      if (sid.value) {
+        const {
+          data: { message, status },
+        } = await changeOrder(sid.value, searchList);
         ElMessage({
-          message: res.data.status
-            ? res.data.message
-            : `${censusForm.sname},${res.data.message}`,
-          type: res.data.status ? "error" : "success",
+          message: message,
+          type: !status ? "success" : "error",
         });
-        resetForm(formEl);
         props.fetchChum();
-        dialogFormVisible.value = false;
-      });
-    } else {
-      console.log("error submit!");
-      return false;
+        resetForm(formEl);
+      } else
+        ElMessage({
+          message: "参数异常，请联系管理员",
+          type: "error",
+        });
     }
   });
 };
+watch(
+  () => searchList.flat,
+  async (v: string) => {
+    searchList.floor = "";
+    if (searchList.flat == "") return;
+    const {
+      data: { ceiling },
+    } = await searchCeiling(v);
+    if (!ceiling) {
+      ElMessage({
+        message: "目标未开放寝室，请联系管理员",
+        type: "error",
+      });
+    } else {
+      floorsOption.splice(
+        0,
+        flatsOption.length,
+        ...Array.from({ length: ceiling }, (_, index) => index + 1).map(
+          (_, idx) => ({
+            value: _,
+            label: _,
+          })
+        )
+      );
+    }
+  },
+  {
+    immediate: true,
+  }
+);
+watch(
+  () => searchList.floor,
+  async (v: string) => {
+    searchList.rid = "";
+    const {
+      data: { message },
+    } = await gatherRoomByFloor(searchList.flat, v);
+    if (!message.length)
+      ElMessage({
+        message: "目标未开放寝室，请联系管理员",
+        type: "error",
+      });
+    else {
+      roomsOption.splice(
+        0,
+        roomsOption.length,
+        ...message.map((item: { rid: number }) => ({
+          value: item.rid,
+          label: item.rid,
+        }))
+      );
+    }
+  }
+);
+watch(
+  () => searchList.rid,
+  async (v: string) => {
+    searchList.bid = "";
+    const {
+      data: { message },
+    } = await gatherBedByRoom(searchList.flat, v);
+    if (!message.length)
+      ElMessage({
+        message: "目标未开放寝室，请联系管理员",
+        type: "error",
+      });
+    else
+      bedsOption.splice(
+        0,
+        bedsOption.length,
+        ...message.map((item: { bid: number; sid: number }) => ({
+          value: item.bid,
+          label: item.bid,
+          ultra: item.sid,
+        }))
+      );
+  }
+);
 </script>
 <style scoped>
 .el-button--text {

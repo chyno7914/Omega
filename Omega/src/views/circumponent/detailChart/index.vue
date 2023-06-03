@@ -1,6 +1,9 @@
 <template>
   <div class="top" ref="elementTop">
-    <div id="censusPie"></div>
+    <div v-if="detailData.length" id="censusPie"></div>
+    <div v-if="!detailData.length">
+      <el-empty description="description" />
+    </div>
   </div>
   <div></div>
 </template>

@@ -22,7 +22,7 @@ exports.register = (req, res, next) => {
     // const sql = "select tid from omega_tower where tcode = ?";
     let sqlAlter;
     if (role === 1)
-      sqlAlter = `select sid from omega_students where sid = '${userinfo.sid}' and uid is null`;
+      sqlAlter = `select sid from omega_students where sid = '${userinfo.sid}' and status != '204' and uid is null`;
     else if (role > 1)
       sqlAlter = `select tid from omega_tower where tcode = '${userinfo.tcode}'`;
     db.query(sqlAlter, (err, results) => {
@@ -95,6 +95,7 @@ exports.login = (req, res, next) => {
               t2.sname,
               t5.tname,
               t5.tid,
+              t1.user_pic,
               password
             FROM 
               omega_users t1 
@@ -115,24 +116,33 @@ exports.login = (req, res, next) => {
     const tokenStr = jwt.sign(user, config.jwtSecretKey, {
       expiresIn: "30h",
     });
-    const { uid, rid, tname, sid, sname, username, tid } = results[0];
+    const { uid, rid, tname, sid, sname, username, tid, user_pic } = results[0];
     const sql = `SELECT uid,CODE FROM omega_grant
                 RIGHT JOIN omega_order ON omega_grant.role = omega_order.role
                 WHERE uid = ${uid}`;
     db.query(sql, (err, results) => {
+      if (err) return next(err);
       const permission = results.map((item) => `${item.uid}:${item.CODE}`);
-      res.send({
-        status: 0,
-        message: "登录成功",
-        uid,
-        rid,
-        sid,
-        sname,
-        tname,
-        permission,
-        username,
-        tid,
-        token: "Bearer " + tokenStr,
+      const sql = `SELECT kind,responsiless FROM omega_applimit t1
+                  LEFT JOIN omega_users t2 ON t2.role = t1.protagonist
+                  WHERE uid = ${uid}`;
+      db.query(sql, (err, result) => {
+        if (err) return next(err);
+        res.send({
+          status: 0,
+          message: "登录成功",
+          uid,
+          rid,
+          sid,
+          sname,
+          tname,
+          permission,
+          username,
+          tid,
+          attribution: result,
+          user_pic,
+          token: "Bearer " + tokenStr,
+        });
       });
     });
   });
@@ -255,38 +265,83 @@ exports.portrait = (req, res, next) => {
     fs.writeFile(fpath, data, (err) => {
       if (err) return res.send({ status: 1, message: "上传失败" });
       else {
-        res.send({
-          status: 0,
-          message: "上传成功",
-          src: "/img/" + file.originalname,
+        console.log(file.originalname);
+        const sql = `update omega_users set user_pic = '${file.originalname}' where uid = ${uid}`;
+        console.log(sql);
+        db.query(sql, (err, result) => {
+          if (err) return next(err);
+          fs.unlinkSync(file.path);
+          res.send({
+            status: 0,
+            message: "上传成功",
+            src: file.originalname,
+          });
         });
-        //删除upload上传的文件图片
-        fs.unlinkSync(file.path);
       }
     });
   });
 };
-// exports.portrait = (req, res, next) => {
-//   const file = req.file;
-//   const targetPath = path.join(
-//     __dirname,
-//     "..",
-//     "public",
-//     "images",
-//     file.originalname
-//   );
-//   console.log(1);
-//   try {
-//     fs.renameSync(file.path, targetPath);
-//     res.status(0).json({
-//       code: 0,
-//       data: `/images/${file.originalname}`,
-//       message: "头像上传成功！",
-//     });
-//   } catch (error) {
-//     res.json({
-//       code: -1,
-//       message: "头像上传失败，请重试！",
-//     });
-//   }
-// };
+exports.cure = (req, res, next) => {
+  const { uid } = req.query;
+  const sql = `SELECT user_pic,telephone,t4.call ,gender,sid,sname,tname,rid,census,birth
+              FROM omega_users t1
+              LEFT JOIN omega_students t2 ON t1.uid = t2.uid
+              LEFT JOIN omega_tower t3 ON t2.tid = t3.tid
+              LEFT JOIN omega_role t4 ON t1.role = t4.role
+              WHERE t1.uid = ${uid}`;
+  db.query(sql, (err, result) => {
+    if (err) return next(err);
+    console.log(result[0]);
+    res.cc(result[0], 0);
+  });
+};
+exports.setUname = (req, res, next) => {
+  const { alternative, uid } = req.body;
+  const sql = `select * from omega_users where username = "${alternative}"`;
+  console.log(sql);
+  db.query(sql, (err, result) => {
+    if (err) return next(err);
+    if (result.length) return next("好名字已被抢先，下次在来吧");
+    const sql = `update omega_users set username = "${alternative}" where uid = ${uid}`;
+    db.query(sql, (err, result) => {
+      if (err) return next(err);
+      res.cc("修改成功", 0);
+    });
+  });
+};
+exports.setPhone = (req, res, next) => {
+  const { alternative, uid } = req.body;
+  const sql = `update omega_users set telephone = "${alternative}" where uid = ${uid}`;
+  db.query(sql, (err, result) => {
+    if (err) return next(err);
+    res.cc("修改成功", 0);
+  });
+};
+exports.changePassword = (req, res, next) => {
+  const { oldPassword, newPassword, uid } = req.body; // 获取当前登录用户的 UID
+
+  // 先查询当前用户是否存在
+  const sqlSelect = "SELECT * FROM omega_users WHERE uid = ?";
+  db.query(sqlSelect, [uid], (err, result) => {
+    if (err) return next(err);
+    if (result.length === 0) return next("用户不存在");
+
+    // 验证旧密码是否正确
+    const user = result[0];
+    if (!bcrypt.compareSync(oldPassword, user.password)) {
+      return next("旧密码不正确");
+    }
+
+    // 更新用户密码
+    const sqlUpdate = "UPDATE omega_users SET password = ? WHERE uid = ?";
+    const newHashedPassword = bcrypt.hashSync(newPassword, 10);
+    db.query(sqlUpdate, [newHashedPassword, uid], (err, result) => {
+      if (err) return next(err);
+      res.cc("密码修改成功", 0);
+    });
+  });
+};
+exports.studentenausweis = (req, res, next) => {
+  const { uid } = req.query;
+  const sql = ``;
+};

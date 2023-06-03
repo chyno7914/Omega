@@ -42,7 +42,7 @@
         :options="majorsOptions"
         placeholder="专业"
         class="filter-item"
-        style="width: 179px"
+        style="width: 240px"
         multiple
         collapse-tags
         clearable
@@ -84,7 +84,7 @@
         导出
       </el-button>
       <el-switch
-        v-model="value1"
+        v-model="searchList.ruinFlag"
         class="mb-2"
         active-text="退寝用户"
         style="margin-left: 10px"
@@ -200,11 +200,25 @@
           >
           <el-button
             size="small"
-            @click="changeDialogRef.showDialog()"
+            @click="changeDialogRef?.showDialog(scope.row.sid)"
+            v-show="scope.row.status != '204'"
             type="success"
             >换寝</el-button
           >
-          <el-button size="small" @click="" type="danger">退寝</el-button>
+          <el-button
+            size="small"
+            @click="setRuin(scope.row.sid)"
+            type="danger"
+            v-show="scope.row.status != '204'"
+            >退寝</el-button
+          >
+          <el-button
+            size="small"
+            @click=""
+            type="danger"
+            v-show="scope.row.status == '204'"
+            >已退寝</el-button
+          >
           <el-button
             size="small"
             type="danger"
@@ -234,7 +248,7 @@
     </el-pagination>
   </div>
   <AddDialog :fetchChum="fetchChum" ref="addDialogRef"></AddDialog>
-  <ChangeDialog ref="changeDialogRef"></ChangeDialog>
+  <ChangeDialog :fetchChum="fetchChum" ref="changeDialogRef"></ChangeDialog>
 </template>
 
 <script lang="ts" setup>
@@ -245,6 +259,7 @@ import {
   deleteChum,
   chumLeave,
   chumBack,
+  chumRuin,
 } from "@/api/table";
 import { useHermesStore, useDemeterStore, useZeusStore } from "@/store";
 import { reactive, ref, h, computed } from "vue";
@@ -264,7 +279,6 @@ let pageSize = ref(20);
 let total = ref(0);
 let flats: string[] = reactive([]);
 const chumData: any[] = reactive([]);
-const value1 = ref(true);
 const searchList = reactive({
   sid: null,
   sname: null,
@@ -272,8 +286,10 @@ const searchList = reactive({
   major: null,
   grade: null,
   class: null,
-  flat: Zeus.flat ?? route.query?.flat ?? null,
+  flat: Zeus.flat != "" ? Zeus.flat ?? route.query?.flat ?? null : null,
+  ruinFlag: true,
 });
+console.log("1" + Zeus.flat + "2");
 const majorsOptions = Demeter.majors.map((_, idx) => ({
   value: _,
   label: _,
@@ -316,8 +332,6 @@ const fetchChum = async () => {
     flag: false,
     ...searchList,
   });
-  console.log(data);
-
   // tableData.splice(0, tableData.length, ...data);
   chumData.splice(0, chumData.length, ...data.message);
 };
@@ -380,6 +394,29 @@ const setBack = async (sid: number) => {
     type: status ? "error" : "success",
   });
   fetchChum();
+};
+const setRuin = (sid: number) => {
+  ElMessageBox.confirm("退寝后暂无方式恢复，是否继续?", "Warning", {
+    confirmButtonText: "确认继续",
+    cancelButtonText: "取消操作",
+    type: "warning",
+  })
+    .then(async () => {
+      const {
+        data: { message, status },
+      } = await chumRuin(sid);
+      ElMessage({
+        message: message,
+        type: status ? "error" : "success",
+      });
+      fetchChum();
+    })
+    .catch(() => {
+      ElMessage({
+        type: "info",
+        message: "取消操作",
+      });
+    });
 };
 const exportHandler = () => {
   const titleArr = [

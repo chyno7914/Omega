@@ -19,7 +19,7 @@ export let toLeave = () => import('@/views/indexMain/application/leave.vue')
 export let toRuin = () => import('@/views/indexMain/application/ruin.vue')
 export let toSwap = () => import('@/views/indexMain/application/swap.vue')
 export let toApplist = ()=>import('@/views/indexMain/application/applist.vue')
-export const toTrytable =()=>import('@/views/indexMain/rest/tryTable.vue')
+export const toTrytable =()=>import('@/views/indexMain/rest/tryinTable.vue')
 // export var studentCourse=()=>import('./studentCourse.vue')
 
 // export var studentInfo=()=>import('./studentInfo.vue')

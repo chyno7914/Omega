@@ -104,11 +104,13 @@ import type { FormInstance, FormRules } from "element-plus";
 import { ElMessage } from "element-plus";
 import { useRouter } from "vue-router";
 import { login, register } from "@/api/user";
-import { useZeusStore, useAstraeaStore } from "@/store";
+import { useZeusStore, useAstraeaStore, useHermesStore } from "@/store";
 let enterType = ref<boolean>(true);
 const Zeus = useZeusStore();
 const Astraea = useAstraeaStore();
+const Hermes = useHermesStore();
 const regStatus = ref(1);
+let attributions = ref([]);
 const loginFormRef = ref<FormInstance>();
 const regFormRef = ref<FormInstance>();
 const router = useRouter();
@@ -171,10 +173,21 @@ const submitLogin = async (formEl: FormInstance | undefined) => {
             tid: Zeus.tid,
             sid: Zeus.sid,
             username: Zeus.username,
+            attribution: attributions.value,
             sname: Zeus.sname,
             permission: Zeus.permission,
+            user_pic: Zeus.portrait,
           } = res.data);
-          console.log(res.data);
+          Zeus.portrait = Zeus.setPortrait(Zeus.portrait);
+          for (let { kind, responsiless } of attributions.value) {
+            if (kind === "status") {
+              Hermes.limitApplyStatus.push(responsiless);
+            } else if (kind === "kind") {
+              Hermes.limitApplyType.push(responsiless);
+            }
+          }
+          console.log("登录：" + Hermes.limitApplyStatus);
+          console.log(Hermes.limitApplyStatus.length);
           router.push("/");
         }
       });

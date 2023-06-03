@@ -56,13 +56,21 @@ export function searchFloors(data:string) {
     }
   })
 }
-export function banRoom(data: number) {
+export function banRoom(data: number,flat:string) {
   return service({
     url: "/room/ban",
     method: "post",
     data: {
-      rid:data
+      target: data,
+      flat
     }
+  })
+}
+export function addRoom(data: object) {
+  return service({
+    url: "/room/add",
+    method: "post",
+    data
   })
 }
 export function useRoom(data: number) {
@@ -176,6 +184,42 @@ export function chumLeave(target: number) {
 export function chumBack(target: number) {
   return service({
     url: "/chum/back",
+    method: "post",
+    data: {
+      target
+    }
+  })
+}
+export function gatherRoomByFloor(flat: string, floor: string) {
+  return service({
+    url: "/room/gather",
+    method: "get",
+    params: {
+      flat,floor
+    }
+  })
+}
+export function gatherBedByRoom(flat: string, rid: string) {
+  return service({
+    url: "/bed/gather",
+    method: "get",
+    params: {
+      flat,rid
+    }
+  })
+}
+export function changeOrder(sid:number,data:object) {
+  return service({
+    url: "/order/change",
+    method: "post",
+    data: {
+      sid,...data
+    }
+    })
+}
+export function chumRuin(target: number) {
+  return service({
+    url: "/chum/ruin",
     method: "post",
     data: {
       target

@@ -10,12 +10,13 @@ const loadingBarVnode = createVNode(loadingBar)
 render(loadingBarVnode, document.body)
 router.beforeEach((to, from, next) => {
     loadingBarVnode.component?.exposed?.startLoading()
-    const Test = useTESTStore()
+    const Hermes = useHermesStore()
     const Zeus = useZeusStore()
     const Astraea = useAstraeaStore()
     if (to.path == '/sign') {
         Zeus.token = ''
         Astraea.$reset()
+        Hermes.$reset()
     }
     if (to.path.split('/').includes('apply')) {
         const { id } = to.query
@@ -40,7 +41,7 @@ router.beforeEach((to, from, next) => {
     if (Astraea.privilege.includes(to.path)) next()
     else {
         permissionConfirm().then((res) => {
-            Zeus.hasTokenFlag = !res.data.status
+            Zeus.hasTokenFlag = !res.data.status        
             Zeus.username = res.data.username
             Astraea.route = res.data.route
             Astraea.menu = res.data.menu

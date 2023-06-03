@@ -46,6 +46,7 @@
         type="primary"
         style=""
         @click="floorDialogRef?.floorDialog()"
+        v-has-show="'roomFloor:open'"
       >
         <span style="margin-left: 5px"> 层显</span>
       </el-button>
@@ -53,17 +54,24 @@
         class="filter-item"
         type="primary"
         style=""
+        v-has-show="'roomFloor:open'"
         @click="chartDrawerRef?.showDrawer()"
       >
         <span style="margin-left: 5px"> 详情</span>
       </el-button>
-      <el-button class="filter-item" type="primary" style="" disabled>
+      <el-button
+        class="filter-item"
+        type="primary"
+        style=""
+        @click="exportHandler()"
+      >
         导出
       </el-button>
       <el-switch
         class="mb-2"
         active-text="显示禁用"
         style="margin-left: 10px"
+        v-model="searchList.banFlag"
       />
     </div>
     <el-table
@@ -153,7 +161,7 @@
           <el-button
             size="small"
             type="danger"
-            @click="deactRoom(scope.row.rid)"
+            @click="deactRoom(scope.row.rid, scope.row.tname)"
             v-show="!scope.row.use_bed && scope.row.decipher != '禁用'"
             >禁用</el-button
           >
@@ -199,8 +207,8 @@
     ></el-pagination>
   </div>
   <AddDialog
-    :floors-options="floorsOptions"
     :flats-options="flatsOptions"
+    :fetch-room="fetchRoom"
     ref="addDialogRef"
   ></AddDialog>
   <FloorDialog :target-flat="Zeus.flat" ref="floorDialogRef"></FloorDialog>
@@ -219,12 +227,13 @@ import {
 } from "@/api/table";
 import { ElMessage } from "element-plus";
 import { useHermesStore, useDemeterStore, useZeusStore } from "@/store";
-import { reactive, ref, computed } from "vue";
+import { reactive, ref, computed, watch } from "vue";
 import { useRouter } from "vue-router";
 import AddDialog from "custom/roomTable/addDialog.vue";
 import FloorDialog from "custom/roomTable/floorDialog.vue";
 import ChangeDialog from "custom/roomTable/changeDialog.vue";
 import ChartDrawer from "custom/roomTable/chartDrawer.vue";
+import { exportExcel } from "@/utils/exportExcel";
 const router = useRouter();
 const Hermes = useHermesStore();
 const Demeter = useDemeterStore();
@@ -242,7 +251,8 @@ let flats: string[] = reactive([]);
 const searchList = reactive({
   rid: Zeus.rid,
   floor: null,
-  flat: Zeus.flat,
+  flat: Zeus.flat ? Zeus.flat : null,
+  banFlag: false,
 });
 const flatsOptions = computed(() =>
   flats.map((_, idx) => ({
@@ -293,33 +303,16 @@ const readDetail = (num: number, flat: string) => {
 
 const handleSizeChange = (val: any) => {
   pageSize.value = val;
+  fetchRoom();
 };
 const handleCurrentChange = (val: any) => {
   currentPage.value = val;
+  fetchRoom();
 };
-const handleDownload = () => {
-  // import("@/util/Export2Excel").then((excel) => {
-  //   const tHeader = ["timestamp", "title", "type", "importance", "status"];
-  //   const filterVal = [
-  //     "timestamp",
-  //     "title",
-  //     "type",
-  //     "importance",
-  //     "status",
-  //   ];
-  //   const data = [];
-  //   console.log(data);
-  //   excel.export_json_to_excel({
-  //     header: tHeader,
-  //     data,
-  //     filename: "table-list",
-  //   });
-  // });
-};
-const deactRoom = async (rid: number) => {
+const deactRoom = async (target: number, flat: string) => {
   const {
     data: { message, status },
-  } = await banRoom(rid);
+  } = await banRoom(target, flat);
   ElMessage({
     message,
     type: status ? "error" : "success",
@@ -336,10 +329,25 @@ const activeRoom = async (rid: number) => {
   });
   fetchRoom();
 };
+const exportHandler = () => {
+  const titleArr = ["公寓", "房间", "总床位", "已用床位", "状态"];
+  exportExcel(
+    roomData.map(({ ...item }) => ({
+      tname: item.tname,
+      rid: item.rid,
+      tolBar: item.tol_bed,
+      useBed: item.use_bed,
+      status: item.decipher,
+    })),
+    "test",
+    titleArr,
+    "1"
+  );
+};
 fetchRoom();
 watch(
   () => searchList.flat,
-  async (v) => {
+  async (v: string | null) => {
     ({
       data: { ceiling: ceiling.value },
     } = await searchCeiling(v));
@@ -358,7 +366,9 @@ watch(
   width: 87%;
 }
 .filter-container {
-  margin: 10px 0;
+  margin: 10px auto;
+  display: flex;
+  justify-content: center;
 }
 .filter-item {
   margin-left: 10px;

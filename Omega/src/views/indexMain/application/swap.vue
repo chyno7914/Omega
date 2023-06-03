@@ -11,7 +11,7 @@
   >
     <span>申请</span>
     <span style="margin: 10px">|</span>
-    <span style="font-size: 25px">报修</span>
+    <span style="font-size: 25px">换寝</span>
   </el-col>
   <el-row>
     <el-col :span="18" :offset="3">
@@ -66,12 +66,19 @@
               />
             </el-form-item>
           </el-col>
-          <el-col :span="6" :offset="3"> </el-col>
-          <el-col :span="6" :offset="3"> </el-col>
+          <el-col :span="6" :offset="3">
+            <el-form-item label="期望寝室" prop="destination">
+              <el-input
+                placeholder="请输入"
+                v-model="dataOther.destination"
+                clearable
+              />
+            </el-form-item>
+          </el-col>
         </el-row>
         <el-row>
           <el-col :span="6">
-            <el-form-item label="报修详情：" prop="text"> </el-form-item>
+            <el-form-item label="请求说明：" prop="text"> </el-form-item>
           </el-col>
         </el-row>
 
@@ -86,7 +93,7 @@
               <Editor
                 style="height: 300px; overflow-y: hidden"
                 v-model="dataStencil.valueHtml"
-                @onCreated="handleCreated($event)"
+                @onCreated="handleCreated"
                 :defaultConfig="editorConfig"
               />
             </div>
@@ -99,7 +106,6 @@
     <el-button @click="toSave()" type="success">保存</el-button>
     <el-button @click="submit(dataFormRef)" type="primary"> 提交 </el-button>
   </el-col>
-  <el-button @click="publish()"></el-button>
 </template>
 
 <script setup lang="ts">
@@ -153,7 +159,7 @@ type Stencil = {
   valueHtml: string;
   meta: string;
 };
-type Others = {};
+type Others = { destination: string; roundTime: string[]; vehicle: string };
 type FormData = Stencil & Others;
 //富文本编辑器
 const route = useRoute();
@@ -162,13 +168,10 @@ const Zeus = useZeusStore();
 const dataFormRef = ref<FormInstance>();
 // 编辑器实例，必须用 shallowRef
 const editorRef = shallowRef();
-console.log(route.query.id);
+console.log("记录点一" + route.query.id);
 
 const handleCreated = (editor: any) => {
   editorRef.value = editor; // 记录 editor 实例，重要！
-};
-const publish = () => {
-  console.log(dataStencil.valueHtml);
 };
 const dataStencil = reactive<Stencil>({
   applId: null,
@@ -177,7 +180,7 @@ const dataStencil = reactive<Stencil>({
   sname: Zeus.sname,
   tname: Zeus.flat,
   rid: Zeus.rid,
-  type: "repair",
+  type: "swap",
   telephone: "",
   meta: "",
   time: 0,
@@ -189,7 +192,11 @@ const toolbarConfig: Partial<IToolbarConfig> = {
 const editorConfig: Partial<IEditorConfig> = {
   placeholder: "请输入内容...",
 };
-const dataOther = reactive<Others>({});
+const dataOther = reactive<Others>({
+  destination: "",
+  roundTime: [],
+  vehicle: "",
+});
 const dataForm = computed<FormData>(() => {
   return {
     ...dataOther,
@@ -201,6 +208,7 @@ const rules = reactive<FormRules>({
     { required: true, message: "请输入手机号", trigger: "blur" },
     { min: 4, message: "电话号码过短", trigger: "blur" },
   ],
+  destination: { required: true, message: "请输入目标寝室", trigger: "blur" },
 });
 let copyForm = ref<string>(JSON.stringify(dataStencil));
 // let diftFlag = ref<boolean>(copyForm.value == JSON.stringify(dataStencil));
@@ -226,8 +234,6 @@ const toSave = async (): Promise<void> => {
     });
 
   copyForm.value = JSON.stringify(dataStencil);
-
-  // const {[propName: string]: _, ...data } = dataStencil;
 };
 const submit = async (formEl: FormInstance | undefined): Promise<void> => {
   dataStencil.meta = JSON.stringify(dataOther);
@@ -251,8 +257,6 @@ const submit = async (formEl: FormInstance | undefined): Promise<void> => {
 const initData = async () => {
   const { id } = route.query;
   if (typeof id === "string") {
-    console.log("执行重置");
-
     const {
       data: { message: dataList, status },
     } = await continueSubmit(id);
@@ -260,17 +264,20 @@ const initData = async () => {
       dataStencil.telephone = dataList[0].telephone;
       dataStencil.valueHtml = dataList[0].straight;
       dataStencil.applId = dataList[0].applId;
+      ({
+        destination: dataOther.destination,
+        roundTime: dataOther.roundTime,
+        vehicle: dataOther.vehicle,
+      } = JSON.parse(dataList[0].meta));
+      dataStencil.meta = JSON.stringify(dataOther);
       copyForm.value = JSON.stringify(dataStencil);
     }
   }
 };
-
 initData();
+
 // 将 next 函数设置为 open 函数的参数
 const open = (next: () => void) => {
-  console.log(copyForm.value);
-  console.log(JSON.stringify(dataStencil));
-
   ElMessageBox.confirm(
     "你的请求尚未保存，请求保存后可于请求列表页查看，是否确认离开此页面？",
     "提示",

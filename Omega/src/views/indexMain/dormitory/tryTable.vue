@@ -78,26 +78,21 @@
         padding: 5px;
         background-color: #f5f5f5;
         box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+        height: 750px;
+        width: 100%;
       "
     >
       <el-auto-resizer>
-        <vue3-seamless-scroll
-          class="seamless"
-          :list="chumData"
-          :hover="true"
-          :step="0.4"
-          :wheel="true"
-          :isWatch="true"
-        >
+        <template #default="{ height, width }">
           <el-table-v2
             :columns="columns"
             :data="chumData"
-            :row-height="40"
-            :width="810"
-            :height="400"
+            :row-height="55"
+            :width="width"
+            :height="height"
           >
           </el-table-v2>
-        </vue3-seamless-scroll>
+        </template>
         <template #empty>
           <div class="flex items-center justify-center h-100%">
             <el-empty />
@@ -194,96 +189,71 @@ const handleCurrentChange = (val: any) => {
   currentPage.value = val;
 };
 const columns: Column<any>[] = [
-  // {
-  //   key: "sid",
-  //   title: "学号",
-  //   dataKey: "sid",
-  //   width: 150,
-  //   align: "center",
-  //   headerCellRenderer: () => (
-  //     <>
-  //       <div
-  //         onClick={changeLifting}
-  //         style="display: flex; align-items: center; white-space: nowrap;"
-  //       >
-  //         学号
-  //         <el-icon color="#409EFC" style="margin-left: 5px;">
-  //           {liftingFlag.value ? <SortUp /> : <SortDown />}
-  //         </el-icon>
-  //       </div>
-  //     </>
-  //   ),
-  //   cellRenderer: ({ cellData: sid }) => <>{sid}</>,
-  // },
+  {
+    key: "sid",
+    title: "uid",
+    dataKey: "sid",
+    width: 230,
+    align: "center",
+    headerCellRenderer: () => (
+      <>
+        <div
+          onClick={changeLifting}
+          style="display: flex; align-items: center; white-space: nowrap;"
+        >
+          uid
+          <el-icon color="#409EFC" style="margin-left: 5px;">
+            {liftingFlag.value ? <SortUp /> : <SortDown />}
+          </el-icon>
+        </div>
+      </>
+    ),
+    cellRenderer: ({ cellData: sid }) => <>{sid}</>,
+  },
 
   {
     key: "sid",
-    title: "公寓编号",
+    title: "头像",
     dataKey: "sid",
-    width: 200,
+    width: 230,
     align: "center",
     cellRenderer: ({ cellData: data }) => <>{data}</>,
   },
   {
     key: "tname",
-    title: "公寓",
+    title: "用户名",
     dataKey: "tname",
-    width: 200,
+    width: 230,
     align: "center",
     cellRenderer: ({ cellData: tname }) => <>{tname}</>,
   },
   {
-    key: "rid",
-    title: "房间",
-    dataKey: "rid",
-    width: 200,
-    align: "center",
-    cellRenderer: ({ cellData: rid }) => <>{rid}</>,
-  },
-  {
     key: "bid",
-    title: "床位",
+    title: "权限",
     dataKey: "bid",
-    width: 150,
+    width: 230,
     align: "center",
     cellRenderer: ({ cellData: bid }) => <>{bid}</>,
   },
   {
     key: "major",
-    title: "专业",
+    title: "电话号码",
     dataKey: "major",
-    width: 150,
+    width: 310,
     align: "center",
     cellRenderer: ({ cellData: major }) => <>{major}</>,
   },
   {
-    key: "grade",
-    title: "年级",
-    dataKey: "grade",
-    width: 150,
-    align: "center",
-    cellRenderer: ({ cellData: grade }) => <>{grade}</>,
-  },
-  {
-    key: "status",
-    title: "状态",
-    dataKey: "grade",
-    width: 100,
-    align: "center",
-    cellRenderer: ({ cellData: grade }) => <>{grade}</>,
-  },
-  {
     key: "operations",
-    title: "Operations",
+    title: "操作",
     cellRenderer: () => (
       <>
-        <ElButton size="small">Edit</ElButton>
         <ElButton size="small" type="danger">
-          Delete
+          删除
         </ElButton>
       </>
     ),
-    width: 300,
+    width: 240,
     align: "center",
   },
 ];

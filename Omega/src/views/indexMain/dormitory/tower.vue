@@ -33,7 +33,6 @@
       >
         添加
       </el-button>
-      <el-button class="filter-item" type="primary" style=""> 导出 </el-button>
     </div>
     <el-row>
       <transition-group move-class="mmm">
@@ -86,7 +85,18 @@
 
             <div style="padding: 14px; float: right">
               <div class="bottom">
-                <el-button text class="button">编辑</el-button>
+                <el-button
+                  text
+                  class="button"
+                  @click="setDialogRef?.floorDialog(o.tname)"
+                  >详情</el-button
+                >
+                <el-button
+                  text
+                  class="button"
+                  @click="setDialogRef?.floorDialog(o.tname)"
+                  >编辑</el-button
+                >
               </div>
             </div>
           </el-card>
@@ -95,6 +105,7 @@
     </el-row>
   </div>
   <AddDialog ref="addDialogRef" :update-data="fetchTower"></AddDialog>
+  <SetDialog ref="setDialogRef"></SetDialog>
 </template>
 
 <script lang="tsx" setup>
@@ -103,8 +114,12 @@ import { useHermesStore, useDemeterStore } from "@/store";
 import { reactive, ref } from "vue";
 import { useRoute } from "vue-router";
 import AddDialog from "custom/flatTable/addDialog.vue";
+import SetDialog from "custom/flatTable/setDialog.vue";
+import ChartDrawer from "custom/roomTable/chartDrawer.vue";
 import type { Column, ElRow } from "element-plus";
 const addDialogRef = ref<InstanceType<typeof AddDialog>>();
+const setDialogRef = ref<InstanceType<typeof SetDialog>>();
+const chartDrawerRef = ref<InstanceType<typeof ChartDrawer>>();
 function handleClick() {
   console.log("Popover clicked");
 }
@@ -133,6 +148,15 @@ const fetchTower = async () => {
   flatData.push(...data.slice());
   // tableData.splice(0, tableData.length, ...data);
 };
+// const readDetail = (num: number, flat: string) => {
+//   router.push({
+//     name: "Chum",
+//     query: {
+//       rid: num,
+//       flat,
+//     },
+//   });
+// };
 fetchTower();
 </script>
 <style scoped>

@@ -14,12 +14,15 @@ export const useZeusStore = defineStore(Names.Zeus,{
             sid: -1,
             role:0,
             permission: <Array<String>>[],
+            portrait:""
         }
     },
     // state的值允许直接修改
     //getters用于修饰数据
-    getters:{
-
+    actions:{
+        setPortrait(path:string|null|undefined) {
+            return path? "http://127.0.0.1:3008/images/" + path:"https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png"
+        }
     },
     persist: {
   // 修改存储中使用的键名称，默认为当前 Store的 id

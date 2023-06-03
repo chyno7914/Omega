@@ -31,3 +31,39 @@ export function portrait(data: FormData) {
     },
   })
 }
+export function cureUser(){
+  return service({
+    url: "/user/cure",
+    method: "get",
+  })
+}
+export function setUsername(alternative: string) {
+  return service({
+    url: "/user/username/set",
+    method: "post",
+    data: {
+      alternative
+    }
+  })
+}
+export function setTelephone(alternative:string) {
+  return service({
+    url: "/user/telephone/set",
+    method: "post",
+    data: {
+      alternative
+    }
+  })
+}
+export function setPassword(oldPassword: string, newPassword:string) {
+  return service({
+    url: "/user/password/set",
+    method: "post",
+    data: {
+      oldPassword,newPassword
+    }
+  })
+}
+export function studentenausweis() {
+  
+}

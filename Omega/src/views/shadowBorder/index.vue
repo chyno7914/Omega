@@ -24,8 +24,8 @@
             <Map></Map>
           </el-col>
           <el-col :span="6" class="rightCol">
+            <!-- <el-row class="rightTop"></el-row> -->
             <UserList></UserList>
-            <el-row class="rightBottom"></el-row>
           </el-col>
         </el-row>
       </el-main>
@@ -41,11 +41,17 @@ import UserList from "./component/userList.vue";
 </script>
 
 <style scoped>
+.common-layout {
+  background-image: url("assets/img/backgrund5.jpg");
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-attachment: fixed;
+  background-position: 0 -125px;
+}
 .el-header {
   background-color: skyblue;
 }
 .el-main {
-  background-color: aquamarine;
   height: 100%;
   overflow: hidden;
 }
@@ -63,30 +69,24 @@ import UserList from "./component/userList.vue";
   height: 100vh;
 }
 .one {
-  background-color: bisque;
   height: 100%;
 }
 .leftCol {
-  background-color: violet;
   height: 100%;
 }
 .borderMain {
   height: 100%;
 }
 .centerCol {
-  background-color: darkgray;
   height: 100%;
 }
 .rightCol {
-  background-color: burlywood;
   height: 100%;
 }
 .leftTop {
-  background-color: crimson;
   height: 30%;
 }
 .rightTop {
-  background-color: khaki;
   height: 50%;
 }
 </style>

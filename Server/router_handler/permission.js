@@ -16,14 +16,14 @@ exports.permission = (req, res, next) => {
 
       db.query(sql, proven.uid, (err, results) => {
         if (err) return next(err);
-        const username = results[0];
+        const username = results[0].username;
         if (err) return next(err);
         res.send({
           status: 0,
           message: "校验成功",
           route: route,
           menu: menu,
-          username: username,
+          username,
         });
       });
     });

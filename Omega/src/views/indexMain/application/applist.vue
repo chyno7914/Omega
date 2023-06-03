@@ -4,7 +4,6 @@
       <el-main style="" class="main">
         <el-scrollbar>
           <el-col :span="18" :offset="3" style="background-image: ">
-            {{ searchKey }}
             <!-- <div v-for="n in 1">
               <el-card
                 style="width: 100%; height: 150px; margin: 15px; padding: 0"
@@ -74,9 +73,22 @@
                             text
                             type="success"
                             style="float: right"
-                            v-show="item.status === 'checking'"
+                            v-show="
+                              item.status === 'checking' && item.type != 'leave'
+                            "
                             v-has-show="'applyList:acceptance'"
                             @click="disposeRepair(item.applId)"
+                            >受理</el-button
+                          >
+                          <el-button
+                            text
+                            type="success"
+                            style="float: right"
+                            v-show="
+                              item.status === 'checking' && item.type == 'leave'
+                            "
+                            v-has-show="'applyList:acceptance'"
+                            @click="disposeLeave(item.applId)"
                             >受理</el-button
                           >
                           <el-button
@@ -125,20 +137,33 @@
                             style="float: right"
                             v-has-show="'applyList:revocation'"
                             v-if="item.status == 'checking'"
+                            @click="toRevocation(item.applId, `撤回`)"
                             >撤回</el-button
                           >
                           <el-button
                             text
                             type="success"
                             style="float: right"
-                            v-has-show="'applyList:repluse'"
+                            v-has-show="'applyList:repulse'"
+                            v-show="item.status == 'chacking'"
+                            @click="toRevocation(item.applId, `打回`)"
                             >打回</el-button
                           >
                           <el-button
                             text
                             type="success"
                             style="float: right"
+                            v-has-show="'applyList:homecoming'"
+                            v-show="item.status == 'backing'"
+                            @click="homecoming(item.applId)"
+                            >销假</el-button
+                          >
+                          <el-button
+                            text
+                            type="success"
+                            style="float: right"
                             v-has-show="'applyList:delete'"
+                            v-show="item.status == 'save'"
                             @click="clickBoxDelete(item.applId)"
                             >删除</el-button
                           >
@@ -326,8 +351,10 @@ import { useRouter } from "vue-router";
 import {
   searchSubmit,
   deleteSubmit,
-  gatherAttribution,
+  submitRevocation,
   acceptRepair,
+  acceptLeave,
+  acceptComing,
 } from "@/api/apply";
 import { useZeusStore, useHermesStore } from "@/store";
 import "@wangeditor/editor/dist/css/style.css"; // 引入 css
@@ -338,6 +365,7 @@ import RepairDetail from "@/components/customComponents/applist/repairDetail.vue
 import LeaveDetail from "@/components/customComponents/applist/leaveDetail.vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import "animate.css";
+import service from "@/utils/request";
 type KeySearch = {
   state: string[];
   type: string[];
@@ -361,10 +389,7 @@ interface DataList {
   uid: number;
   username: string;
 }
-const searchKey = reactive<KeySearch>({
-  type: [],
-  state: [],
-});
+
 onActivated(async () => {
   await dataFetch(searchKey);
 });
@@ -376,7 +401,10 @@ const editorConfig: Partial<IEditorConfig> = {
   autoFocus: false,
   scroll: false,
 };
-
+const searchKey = reactive<KeySearch>({
+  type: Hermes.limitApplyType,
+  state: Hermes.limitApplyStatus,
+});
 const stepsDrawerRef = ref<InstanceType<typeof StepsDrawer>>();
 const repairDetailRef = ref<InstanceType<typeof RepairDetail>>();
 const leaveDetailRef = ref<InstanceType<typeof LeaveDetail>>();
@@ -438,25 +466,6 @@ const clickBoxDelete = (id: number | string) => {
       // 用户点击了 Cancel 按钮，不执行路由跳转
     });
 };
-const fetchAttribution = async () => {
-  const {
-    data: { message },
-  } = await gatherAttribution();
-  for (let { kind, responsiless } of message) {
-    if (kind === "status") {
-      searchKey.state.push(responsiless);
-    } else if (kind === "kind") {
-      searchKey.type.push(responsiless);
-    }
-  }
-  watch(
-    () => searchKey,
-    () => {
-      dataFetch(searchKey);
-    },
-    { immediate: true, deep: true }
-  );
-};
 const disposeRepair = async (target: number) => {
   const {
     data: { message, status },
@@ -467,7 +476,45 @@ const disposeRepair = async (target: number) => {
   });
   dataFetch(searchKey);
 };
-fetchAttribution();
+const disposeLeave = async (target: number) => {
+  const {
+    data: { message, status },
+  } = await acceptLeave(target);
+  ElMessage({
+    message: message,
+    type: status ? "error" : "success",
+  });
+  dataFetch(searchKey);
+};
+const homecoming = async (target: number) => {
+  const {
+    data: { message, status },
+  } = await acceptComing(target);
+  ElMessage({
+    message: message,
+    type: status ? "error" : "success",
+  });
+  dataFetch(searchKey);
+};
+const toRevocation = async (target: number, antistop: string) => {
+  const {
+    data: { message, status },
+  } = await submitRevocation(target, antistop);
+  ElMessage({
+    message: message,
+    type: status ? "error" : "success",
+  });
+  dataFetch(searchKey);
+};
+
+watch(
+  () => searchKey,
+  () => {
+    console.log("组件内" + searchKey.state);
+    dataFetch(searchKey);
+  },
+  { deep: true }
+);
 </script>
 <style scoped>
 .aside {

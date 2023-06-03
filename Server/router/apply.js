@@ -21,6 +21,9 @@ router.get("/apply/attribution", applyHandler.gatherItemAttribute);
 router.post("/apply/delete", applyHandler.submitDelete);
 router.get("/apply/detail", applyHandler.submitDetail);
 router.post("/apply/accept/repair", applyHandler.aceeptRepair);
+router.post("/apply/accept/leave", applyHandler.aceeptLeave);
+router.post("/apply/revocation", applyHandler.submitRevocation);
+router.post("/apply/accept/homecoming", applyHandler.homecoming);
 //   function (err, req, res, next) {
 //     // 处理上传文件错误，例如文件大小超出限制等
 //     console.error(err);

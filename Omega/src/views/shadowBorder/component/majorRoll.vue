@@ -26,11 +26,6 @@ const initChart = () => {
     document.querySelector("#majorRoll") as HTMLElement
   );
   chart.setOption({
-    title: {
-      text: "Referer of a Website",
-      subtext: "Fake Data",
-      left: "center",
-    },
     tooltip: {
       trigger: "item",
       formatter: "{b}:<br/> {c} ({d}%)",

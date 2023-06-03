@@ -4,7 +4,9 @@ export const useHermesStore = defineStore(Names.Hermes,{
     state:()=> {
         return {
             librakey: '',
-            maxFloorWidth:6
+            maxFloorWidth: 6,
+            limitApplyStatus: [],
+            limitApplyType:[]
         }
     },
     // state的值允许直接修改
@@ -38,5 +40,11 @@ export const useHermesStore = defineStore(Names.Hermes,{
         }
 
         // 其他情况下可以使用Test.$patch 对store进行修改
+    },
+    persist: {
+  // 修改存储中使用的键名称，默认为当前 Store的 id
+        key: `${__piniaKey__}-${Names.Hermes}`,
+        // 部分持久化状态的点符号路径数组，[]意味着没有状态被持久化(默认为undefined，持久化整个状态)
+        paths: ['limitApplyStatus','limitApplyType'],
     },
 })

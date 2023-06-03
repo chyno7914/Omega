@@ -2,13 +2,13 @@
   <!-- Form -->
   <el-dialog
     v-model="dialogFormVisible"
-    title="添加数据"
+    title="添加房间"
     width="40%"
     lock-scroll
     destroy-on-close
   >
     <el-form
-      ref="censusFormRef"
+      ref="roomFormRef"
       :model="roomForm"
       status-icon
       :rules="rules"
@@ -20,6 +20,7 @@
         <el-form-item label="公寓" prop="flat">
           <el-select-v2
             v-model="roomForm.flat"
+            v-limit-elsearch="'searchFlat:limit'"
             filterable
             :options="flatsOptions"
             placeholder=" "
@@ -29,9 +30,10 @@
         </el-form-item>
       </el-col>
       <el-col :span="12">
-        <el-form-item label="楼层">
+        <el-form-item label="楼层" prop="floor">
           <el-select-v2
             v-model="roomForm.floor"
+            :disabled="!roomForm.flat"
             filterable
             :options="floorsOptions"
             placeholder=" "
@@ -41,7 +43,18 @@
         </el-form-item>
       </el-col>
       <el-col :span="12">
-        <el-form-item label="数量">
+        <el-form-item label="床位数量" prop="tol_bed">
+          <el-input-number
+            v-model="roomForm.tol_bed"
+            controls-position="right"
+            :min="1"
+            :max="10"
+          >
+          </el-input-number>
+        </el-form-item>
+      </el-col>
+      <el-col :span="12">
+        <el-form-item label="数量" prop="tolly">
           <el-input-number v-model="roomForm.tally" min="1" />
         </el-form-item>
       </el-col>
@@ -67,7 +80,9 @@
     </el-form>
     <template #footer>
       <span class="dialog-footer">
-        <el-button type="primary" @click="">提交</el-button>
+        <el-button type="primary" @click="submitForm(roomFormRef)"
+          >提交</el-button
+        >
         <el-button @click="dialogFormVisible = false">取消</el-button>
       </span>
     </template>
@@ -75,19 +90,19 @@
 </template>
 
 <script lang="ts" setup>
-import { reactive, ref, watch } from "vue";
+import { computed, reactive, ref, watch } from "vue";
 import type { FormInstance, FormRules } from "element-plus";
 import { useZeusStore, useDemeterStore } from "@/store";
 import { ElMessage } from "element-plus";
-import { census } from "@/api/user";
+import { addRoom, searchCeiling } from "@/api/table";
 import { useRouter } from "vue-router";
 defineExpose({
   addDialog: () => (dialogFormVisible.value = true),
 });
-withDefaults(
+const props = withDefaults(
   defineProps<{
     flatsOptions: object[];
-    floorsOptions: object[];
+    fetchRoom: () => void;
   }>(),
   {}
 );
@@ -96,45 +111,69 @@ const dialogFormVisible = ref(false);
 const roomFormRef = ref<FormInstance>();
 const router = useRouter();
 const Zeus = useZeusStore();
-const Demeter = useDemeterStore();
+let ceiling = ref();
 const disabledDate = (time: Date) => {
   return time.getTime() > Date.now();
 };
 const roomForm = reactive({
-  flat: "",
+  flat: Zeus.flat ?? "",
   floor: "",
+  tol_bed: 6,
   tally: 1,
   transmitFlag: true,
 });
 const rules = reactive<FormRules>({
-  flat: [{ required: true, message: "请确认宿舍名", trigger: "blur" }],
+  flat: [{ required: true, message: "请确认宿舍名", trigger: "change" }],
+  floor: [{ required: true, message: "请确认楼层", trigger: "change" }],
+  tol_bed: [{ required: true, message: "请确认楼层", trigger: "blur" }],
 });
 const resetForm = (formEl: FormInstance | undefined) => {
   if (!formEl) return;
   dialogFormVisible.value = false;
   formEl.resetFields();
 };
-// const submitCensus = async (formEl: FormInstance | undefined) => {
-//   if (!formEl) return;
-//   await formEl.validate((valid) => {
-//     if (valid) {
-//       // alert(new Date(censusForm.birth));
-//       census(censusForm).then((res) => {
-//         ElMessage({
-//           message: res.data.status
-//             ? res.data.message
-//             : `${censusForm.sname},${res.data.message}`,
-//           type: res.data.status ? "error" : "success",
-//         });
-//         resetForm(formEl);
-//         dialogFormVisible.value = false;
-//       });
-//     } else {
-//       console.log("error submit!");
-//       return false;
-//     }
-//   });
-// };
+const floorsOptions = computed(() =>
+  Array.from({ length: ceiling.value }, (_, index) => index + 1).map(
+    (_, idx) => ({
+      value: _,
+      label: _,
+    })
+  )
+);
+const submitForm = async (formEl: FormInstance | undefined) => {
+  if (!formEl) return;
+  await formEl.validate(async (valid) => {
+    if (valid) {
+      console.log(roomForm);
+
+      const {
+        data: { message, status },
+      } = await addRoom(roomForm);
+      ElMessage({
+        message: message,
+        type: status ? "error" : "success",
+      });
+      // alert(new Date(censusForm.birth));
+      // census(censusForm).then((res) => {
+      //
+      props.fetchRoom();
+      resetForm(formEl);
+      dialogFormVisible.value = false;
+      // });
+    }
+  });
+};
+watch(
+  () => roomForm.flat,
+  async (v: string | null) => {
+    ({
+      data: { ceiling: ceiling.value },
+    } = await searchCeiling(v));
+  },
+  {
+    immediate: true,
+  }
+);
 </script>
 <style scoped>
 .el-button--text {

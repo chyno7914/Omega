@@ -7,6 +7,7 @@
       margin-bottom: 5px;
       padding-top: 5px;
     "
+    :id="dataForm.applId"
   >
     <span>申请</span>
     <span style="margin: 10px">|</span>
@@ -14,7 +15,12 @@
   </el-col>
   <el-row>
     <el-col :span="18" :offset="3">
-      <el-form ref="dataStencilRef" :model="dataStencil" :rule="rules">
+      <el-form
+        ref="dataFormRef"
+        :model="dataForm"
+        :rules="rules"
+        hide-required-asterisk
+      >
         <el-row>
           <el-col :span="6">
             <el-form-item label="学号">
@@ -51,7 +57,7 @@
             </el-form-item>
           </el-col>
           <el-col :span="6" :offset="3">
-            <el-form-item label="电话">
+            <el-form-item label="电话" prop="telephone">
               <el-input
                 placeholder="请输入4至11位电话号码"
                 v-model="dataStencil.telephone"
@@ -65,7 +71,7 @@
         </el-row>
         <el-row>
           <el-col :span="6">
-            <el-form-item label="报修详情：" prop="text"> </el-form-item>
+            <el-form-item label="退寝原因：" prop="text"> </el-form-item>
           </el-col>
         </el-row>
 
@@ -80,7 +86,8 @@
               <Editor
                 style="height: 300px; overflow-y: hidden"
                 v-model="dataStencil.valueHtml"
-                @onCreated="handleCreated"
+                @onCreated="handleCreated($event)"
+                :defaultConfig="editorConfig"
               />
             </div>
           </el-col>
@@ -90,10 +97,11 @@
   </el-row>
   <el-col :offset="19" style="margin-top: 15px">
     <el-button @click="toSave()" type="success">保存</el-button>
-    <el-button @click="submit()" type="primary"> 提交 </el-button>
+    <el-button @click="submit(dataFormRef)" type="primary"> 提交 </el-button>
   </el-col>
   <el-button @click="publish()"></el-button>
 </template>
+
 <script setup lang="ts">
 import {
   ref,
@@ -104,22 +112,34 @@ import {
   watch,
   computed,
   watchEffect,
+  onBeforeMount,
 } from "vue";
-import { IToolbarConfig } from "@wangeditor/editor";
-import { useRoute, useRouter, onBeforeRouteLeave } from "vue-router";
+import { IToolbarConfig, IEditorConfig } from "@wangeditor/editor";
+import {
+  useRoute,
+  useRouter,
+  onBeforeRouteLeave,
+  onBeforeRouteUpdate,
+} from "vue-router";
 import { useZeusStore } from "@/store";
 import { ElMessage, ElMessageBox, FormRules, FormInstance } from "element-plus";
 import type { Action } from "element-plus";
 import "@wangeditor/editor/dist/css/style.css"; // 引入 css
 import { Editor, Toolbar } from "@wangeditor/editor-for-vue";
-import { pushSubmit } from "@/api/apply";
+import { pushSubmit, continueSubmit } from "@/api/apply";
 import { ArrowLeft } from "@element-plus/icons-vue";
+
+// onBeforeRouteEnter((to, from, next) => {
+//   // 使用箭头函数将 next 函数传递给 open 函数
+//   if (diftFlag.value) open(() => next());
+//   else next();
+// });
+
 onBeforeRouteLeave((to, from, next) => {
   // 使用箭头函数将 next 函数传递给 open 函数
   if (diftFlag.value) open(() => next());
   else next();
 });
-
 type Stencil = {
   applId: number | null;
   uid: number | null;
@@ -134,19 +154,21 @@ type Stencil = {
   meta: string;
 };
 type Others = {};
-type DataForm = Stencil & Others;
+type FormData = Stencil & Others;
 //富文本编辑器
 const route = useRoute();
 const router = useRouter();
 const Zeus = useZeusStore();
-const dataStencilRef = ref<FormInstance>();
+const dataFormRef = ref<FormInstance>();
 // 编辑器实例，必须用 shallowRef
 const editorRef = shallowRef();
+console.log(route.query.id);
+
 const handleCreated = (editor: any) => {
   editorRef.value = editor; // 记录 editor 实例，重要！
 };
 const publish = () => {
-  console.log(dataStencil.valueHtml);
+  console.log(process.env.VUE_APP_BASE_API);
 };
 const dataStencil = reactive<Stencil>({
   applId: null,
@@ -155,65 +177,100 @@ const dataStencil = reactive<Stencil>({
   sname: Zeus.sname,
   tname: Zeus.flat,
   rid: Zeus.rid,
-  type: "repair",
+  type: "ruin",
   telephone: "",
   meta: "",
   time: 0,
-  valueHtml:
-    "<p>hell<s><u><em><strong>o 富文本编辑器</strong></em></u></s></p>",
+  valueHtml: "<p><br></p>",
 });
-const toolbarConfig: Partial<IToolbarConfig> = {};
-
-toolbarConfig.excludeKeys = [
-  // "headerSelect",
-  // "blockquote",
-  "emotion",
-  // "bulletedList",
-  // "numberedList",
-  // "insertLink",
-  // "insertTable",
-  // "codeBlock",
-  "group-image",
-  "group-video",
-  // "fullScreen",
-];
+const toolbarConfig: Partial<IToolbarConfig> = {
+  excludeKeys: ["emotion", "group-image", "group-video"],
+};
+const editorConfig: Partial<IEditorConfig> = {
+  placeholder: "请输入内容...",
+};
 const dataOther = reactive<Others>({});
-const rules = reactive<FormRules>({
-  text: [{ required: true, message: "请输入账号", trigger: "blur" }],
+const dataForm = computed<FormData>(() => {
+  return {
+    ...dataOther,
+    ...dataStencil,
+  };
 });
-let copyForm = ref<string>(JSON.stringify({ ...dataStencil }));
+const rules = reactive<FormRules>({
+  telephone: [
+    { required: true, message: "请输入手机号", trigger: "blur" },
+    { min: 4, message: "电话号码过短", trigger: "blur" },
+  ],
+});
+let copyForm = ref<string>(JSON.stringify(dataStencil));
 // let diftFlag = ref<boolean>(copyForm.value == JSON.stringify(dataStencil));
 let diftFlag = computed<boolean>(
-  () => copyForm.value != JSON.stringify({ ...dataStencil })
+  () => copyForm.value != JSON.stringify(dataStencil)
 );
-console.log(diftFlag.value, copyForm.value, JSON.stringify(dataStencil));
+
 const toSave = async (): Promise<void> => {
   dataStencil.meta = JSON.stringify(dataOther);
   dataStencil.time = Date.now();
   const {
-    data: { message, status },
+    data: { message, status, id },
   } = await pushSubmit(dataStencil);
   ElMessage({
     message: message,
     type: status ? "error" : "success",
   });
+  if (!dataStencil.applId)
+    router.replace({
+      query: {
+        id,
+      },
+    });
+
   copyForm.value = JSON.stringify(dataStencil);
 
   // const {[propName: string]: _, ...data } = dataStencil;
 };
-const submit = (): void => {
-  copyForm.value = JSON.stringify({ ...dataStencil });
+const submit = async (formEl: FormInstance | undefined): Promise<void> => {
+  dataStencil.meta = JSON.stringify(dataOther);
+  dataStencil.time = Date.now();
+  if (!formEl) return;
+  await formEl.validate(async (valid, fields) => {
+    if (valid) {
+      const {
+        data: { message, status },
+      } = await pushSubmit(dataStencil, "checking");
+      ElMessage({
+        message: message,
+        type: status ? "error" : "success",
+      });
+      if (!status) router.push("/applist");
+    }
+  });
+  copyForm.value = JSON.stringify(dataStencil);
 };
-// watch(
-//   () => route.path,
-//   (newPath, oldPath) => {
-//     console.log("路由发生变化：", newPath, oldPath);
-//     open();
-//   }
-// );
 
+const initData = async () => {
+  const { id } = route.query;
+  if (typeof id === "string") {
+    console.log("执行重置");
+
+    const {
+      data: { message: dataList, status },
+    } = await continueSubmit(id);
+    if (!status) {
+      dataStencil.telephone = dataList[0].telephone;
+      dataStencil.valueHtml = dataList[0].straight;
+      dataStencil.applId = dataList[0].applId;
+      copyForm.value = JSON.stringify(dataStencil);
+    }
+  }
+};
+
+initData();
 // 将 next 函数设置为 open 函数的参数
 const open = (next: () => void) => {
+  console.log(copyForm.value);
+  console.log(JSON.stringify(dataStencil));
+
   ElMessageBox.confirm(
     "你的请求尚未保存，请求保存后可于请求列表页查看，是否确认离开此页面？",
     "提示",
@@ -226,7 +283,7 @@ const open = (next: () => void) => {
     .then(() => {
       ElMessage({
         type: "success",
-        message: "Delete completed",
+        message: "确认跳转",
       });
       // 用户点击了 OK 按钮，执行路由跳转
       next();
@@ -234,13 +291,14 @@ const open = (next: () => void) => {
     .catch(() => {
       ElMessage({
         type: "info",
-        message: "Delete canceled",
+        message: "取消跳转",
       });
       // 用户点击了 Cancel 按钮，不执行路由跳转
     });
 };
 watchEffect(() => {
   console.log(diftFlag.value);
+  console.log("执行" + dataStencil.applId);
 });
 watch(
   () => dataOther,
@@ -248,6 +306,12 @@ watch(
     dataStencil.meta = JSON.stringify(k);
   },
   { deep: true }
+);
+watch(
+  () => route.query,
+  (newPath, oldPath) => {
+    initData();
+  }
 );
 // 判断 a 是否等于 1A
 // if (a === 1) {
@@ -258,3 +322,4 @@ watch(
 //   next()
 // }
 </script>
+<style src="@wangeditor/editor/dist/css/style.css"></style>
