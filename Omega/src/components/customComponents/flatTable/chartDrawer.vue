@@ -57,9 +57,6 @@ watch(
         path: Astraea.arbiDirction(guidepost, "/detail"),
       });
     }
-  },
-  {
-    immediate: true,
   }
 );
 </script>

@@ -168,7 +168,7 @@
           <el-button
             size="small"
             type="success"
-            @click="activeRoom(scope.row.rid)"
+            @click="activeRoom(scope.row.rid, scope.row.tname)"
             v-show="scope.row.decipher == '禁用'"
             >激活</el-button
           >
@@ -319,10 +319,10 @@ const deactRoom = async (target: number, flat: string) => {
   });
   fetchRoom();
 };
-const activeRoom = async (rid: number) => {
+const activeRoom = async (rid: number, flat: string) => {
   const {
     data: { message, status },
-  } = await useRoom(rid);
+  } = await useRoom(rid, flat);
   ElMessage({
     message,
     type: status ? "error" : "success",

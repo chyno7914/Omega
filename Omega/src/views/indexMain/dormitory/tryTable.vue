@@ -1,77 +1,14 @@
 <template>
   <div class="app-container">
-    <div class="filter-container">
-      <el-input
-        placeholder="学号"
-        style="width: 160px"
-        class="filter-item"
-        v-model="searchList.sid"
-        :formatter="(value:string) => value.replace(/[^\d]/g, '')"
-        clearable
-      />
-      <el-input
-        placeholder="姓名"
-        style="width: 160px"
-        class="filter-item"
-        v-model="searchList.sname"
-        :formatter="(value:string) => value.replace(/[^\u4e00-\u9fa5a-zA-Z_]/g, '')"
-        clearable
-      />
-      <el-select-v2
-        v-model="searchList.flat"
-        filterable
-        :options="flatsOptions"
-        placeholder="公寓"
-        class="filter-item"
-        style="width: 130px"
-        clearable
-      />
-      <el-input
-        placeholder="房间"
-        style="width: 160px"
-        class="filter-item"
-        v-model="searchList.room"
-        :formatter="(value:string) => value.replace(/[^\d]/g, '')"
-        clearable
-      />
-      <el-select-v2
-        v-model="searchList.major"
-        filterable
-        :options="majorsOptions"
-        placeholder="专业"
-        class="filter-item"
-        style="width: 179px"
-        multiple
-        collapse-tags
-        clearable
-      />
-      <el-select-v2
-        v-model="searchList.grade"
-        filterable
-        :options="gradesOptions"
-        placeholder="年级"
-        class="filter-item"
-        style="width: 179px"
-        multiple
-        collapse-tags
-        clearable
-      />
-      <el-select-v2
-        v-model="searchList.class"
-        filterable
-        :options="classesOptions"
-        placeholder="班级"
-        class="filter-item"
-        style="width: 179px"
-        multiple
-        collapse-tags
-        clearable
-      />
-      <el-button class="filter-item" type="primary" style="" @click="fetchChum">
-        <span style="margin-left: 5px"> 查找</span>
-      </el-button>
-      <el-button class="filter-item" type="primary" style=""> 导出 </el-button>
-    </div>
+    <el-page-header
+      @back="goBack"
+      style="margin-top: 1%; margin-bottom: 1%"
+      title="返回"
+    >
+      <template #content>
+        <span class="text-large font-600 mr-3"> 用户操作 </span>
+      </template>
+    </el-page-header>
     <div
       style="
         display: inline-block;
@@ -85,8 +22,8 @@
       <el-auto-resizer>
         <template #default="{ height, width }">
           <el-table-v2
-            :columns="columns"
-            :data="chumData"
+            :columns="column"
+            :data="userData"
             :row-height="55"
             :width="width"
             :height="height"
@@ -104,95 +41,67 @@
 </template>
 
 <script lang="tsx" setup>
-import { estimate, searchTname, gatherChum } from "@/api/table";
-import { useHermesStore, useDemeterStore } from "@/store";
+import { orderUser, deleteUser } from "@/api/table";
+import { useHermesStore, useDemeterStore, useZeusStore } from "@/store";
 import { reactive, ref } from "vue";
-import { useRoute } from "vue-router";
+import { useRouter } from "vue-router";
 import {
   ElButton,
   ElIcon,
   ElTag,
   ElTooltip,
   TableV2FixedDir,
+  ElAvatar,
+  ElMessage,
 } from "element-plus";
 import { Sort, SortUp, SortDown } from "@element-plus/icons-vue";
 import type { Column } from "element-plus";
-const route = useRoute();
-const Hermes = useHermesStore();
-const Demeter = useDemeterStore();
-const currentPage = ref(1);
-const pageSize = ref(10);
-const total = ref(0);
+const Zeus = useZeusStore();
 const liftingFlag = ref(false);
-const chumData: any[] = reactive([]);
-const searchList = reactive({
-  sid: null,
-  sname: null,
-  room: null,
-  major: null,
-  grade: null,
-  class: null,
-  flat: null,
-});
-const provincesOptions = Demeter.provinces.map((_, idx) => ({
-  value: _,
-  label: _,
-}));
-const majorsOptions = Demeter.majors.map((_, idx) => ({
-  value: _,
-  label: _,
-}));
-const classesOptions = Demeter.classes.map((_, idx) => ({
-  value: _,
-  label: _,
-}));
-const gradesOptions = Demeter.grades.map((_, idx) => ({
-  value: _,
-  label: _,
-}));
-const flatsOptions = Demeter.flats.map((_, idx) => ({
-  value: _,
-  label: _,
-}));
-
-const initChum = async () => {
+const router = useRouter();
+const userData: any[] = reactive([]);
+const goBack = () => {
+  router.push("/welcome");
+};
+const userToDelete = async (target: number) => {
   const {
-    data: { gross },
-  } = await estimate(Hermes?.librakey);
+    data: { message, status },
+  } = await deleteUser(target);
+  ElMessage({
+    message,
+    type: status ? "error" : "success",
+  });
+  fetchUser();
+};
+const publish = (data: number) => {
+  console.log(data);
+};
+const fetchUser = async () => {
   const {
     data: { message },
-  } = await searchTname();
-  total.value = gross;
-  // console.log(total);
-  Demeter.flats = message.slice();
-};
-const fetchChum = async () => {
-  // console.log(searchList);
-
-  const { data } = await gatherChum({
-    pageSize: pageSize.value,
-    currentPage: currentPage.value,
-    flag: false,
-    ...searchList,
-  });
-  // tableData.splice(0, tableData.length, ...data);
-  chumData.splice(0, chumData.length, ...data.message);
+  } = await orderUser();
+  userData.splice(0, userData.length, ...message);
 };
 const changeLifting = () => {
   liftingFlag.value = !liftingFlag.value;
 };
-const handleSizeChange = (val: any) => {
-  pageSize.value = val;
-};
-
-const handleCurrentChange = (val: any) => {
-  currentPage.value = val;
-};
-const columns: Column<any>[] = [
+const column: Column<any>[] = [
   {
-    key: "sid",
+    key: "user_pic",
+    title: "头像",
+    dataKey: "user_pic",
+    width: 230,
+    align: "center",
+    cellRenderer: ({ cellData: user_pic }) => (
+      <>
+        <ElAvatar src={Zeus.setPortrait(user_pic)} size={50}></ElAvatar>
+      </>
+    ),
+  },
+  {
+    key: "uid",
     title: "uid",
-    dataKey: "sid",
+    dataKey: "uid",
     width: 230,
     align: "center",
     headerCellRenderer: () => (
@@ -202,53 +111,49 @@ const columns: Column<any>[] = [
           style="display: flex; align-items: center; white-space: nowrap;"
         >
           uid
-          <el-icon color="#409EFC" style="margin-left: 5px;">
+          {/* <el-icon color="#409EFC" style="margin-left: 5px;">
             {liftingFlag.value ? <SortUp /> : <SortDown />}
-          </el-icon>
+          </el-icon> */}
         </div>
       </>
     ),
-    cellRenderer: ({ cellData: sid }) => <>{sid}</>,
+    cellRenderer: ({ cellData: uid }) => <>{uid}</>,
   },
 
   {
-    key: "sid",
-    title: "头像",
-    dataKey: "sid",
-    width: 230,
-    align: "center",
-    cellRenderer: ({ cellData: data }) => <>{data}</>,
-  },
-  {
-    key: "tname",
+    key: "username",
     title: "用户名",
-    dataKey: "tname",
+    dataKey: "username",
     width: 230,
     align: "center",
-    cellRenderer: ({ cellData: tname }) => <>{tname}</>,
+    cellRenderer: ({ cellData: username }) => <>{username}</>,
   },
   {
-    key: "bid",
+    key: "call",
     title: "权限",
-    dataKey: "bid",
+    dataKey: "call",
     width: 230,
     align: "center",
-    cellRenderer: ({ cellData: bid }) => <>{bid}</>,
+    cellRenderer: ({ cellData: call }) => <ElTag>{call}</ElTag>,
   },
   {
-    key: "major",
+    key: "telephone",
     title: "电话号码",
-    dataKey: "major",
+    dataKey: "telephone",
     width: 310,
     align: "center",
-    cellRenderer: ({ cellData: major }) => <>{major}</>,
+    cellRenderer: ({ cellData: telephone }) => <>{telephone}</>,
   },
   {
-    key: "operations",
+    key: "operation",
     title: "操作",
-    cellRenderer: () => (
+    cellRenderer: (row) => (
       <>
-        <ElButton size="small" type="danger">
+        <ElButton
+          size="small"
+          type="danger"
+          onClick={(event) => userToDelete(row.rowData.uid)}
+        >
           删除
         </ElButton>
       </>
@@ -257,8 +162,7 @@ const columns: Column<any>[] = [
     align: "center",
   },
 ];
-initChum();
-fetchChum();
+fetchUser();
 // console.log(total.value);
 </script>
 <style scoped>

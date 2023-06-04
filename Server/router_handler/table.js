@@ -309,12 +309,13 @@ WHERE tname = "${targetFlat}"`;
 exports.banRoom = (req, res, next) => {
   const { target, flat } = req.body;
   const sql = `select use_bed,t1.status from omega_room t1 left join omega_tower t2 on t1.tid = t2.tid where rid = ${target} and tname = "${flat}"`;
-  console.log(sql);
   db.query(sql, (err, result) => {
     if (err) return next(err);
     if (result[0].use_bed) return res.cc("房间还有剩余住户，请清空房间后禁用");
     if (result[0].status == 304) return res.cc("房间已禁用");
-    const sql = `update omega_room set status = 304 where rid = ${target}`;
+    const sql = `update omega_room set status = 304 where rid = ${target} and tid = (
+      select tid from omega_tower where tname = "${flat}"
+    )`;
     db.query(sql, (err, result) => {
       if (err) return next(err);
       res.cc("禁用成功", 0);
@@ -322,10 +323,14 @@ exports.banRoom = (req, res, next) => {
   });
 };
 exports.useRoom = (req, res, next) => {
-  const target = req.body.rid;
-  const sql = `select use_bed,tol_bed,status from omega_room where rid = ${target}`;
+  const { rid, flat } = req.body;
+  const sql = `select use_bed,tol_bed,status from omega_room where rid = ${rid} and tid = (
+    select tid from omega_tower where tname = "${flat}"
+  )`;
+  console.log(sql);
   db.query(sql, (err, result) => {
     if (err) return next(err);
+    console.log(result[0]);
     if (result[0].status != 304) return res.cc("房间已激活");
     let status = 300;
     if (result[0].use_bed == 0) {
@@ -333,7 +338,10 @@ exports.useRoom = (req, res, next) => {
     } else if ((result[0].use_bed = result[0].tol_bed)) {
       status = 302;
     }
-    const sql = `update omega_room set status = ${status} where rid = ${target}`;
+    const sql = `update omega_room set status = ${status} where rid = ${rid} and tid = (
+                  select tid from omega_tower where tname = "${flat}"
+                )`;
+    console.log(sql);
     db.query(sql, (err, result) => {
       if (err) return next(err);
       res.cc("激活成功", 0);
@@ -684,7 +692,7 @@ exports.chumRuin = (req, res, next) => {
       db.query(sql, (err, result) => {
         if (err) return next(err);
         if (!uid) return res.cc("操作成功", 0);
-        const sql = `update omega_users set role = 4 where uid = ${uid}`;
+        const sql = `update omega_grant set role = 4 where uid = ${uid}`;
         db.query(sql, (err, result) => {
           if (err) return next(err);
           res.cc("操作成功", 0);
@@ -693,3 +701,24 @@ exports.chumRuin = (req, res, next) => {
     });
   });
 };
+exports.orderUser = (req, res, next) => {
+  const sql = `SELECT t1.uid,t2.call,username,user_pic,telephone 
+                FROM omega_users t1
+                LEFT JOIN (
+                  SELECT r1.call,r2.uid
+                  FROM omega_role r1
+                  RIGHT JOIN omega_grant r2 ON r1.role = r2.role
+                ) t2 ON t1.uid = t2.uid`;
+  db.query(sql, (err, result) => {
+    if (err) return next(err);
+    res.cc(result, 0);
+  });
+};
+exports.userDelete = (req, res, next) => {
+  const { target } = req.body
+  const sql = `delete from omega_users where uid = ${target}`
+  db.query(sql, (err, result) => {
+    if (err) return next(err);
+    res.cc("删除成功",0)
+  })
+}

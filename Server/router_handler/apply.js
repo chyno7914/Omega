@@ -82,7 +82,7 @@ exports.submitSearchTokenCheck = (req, res, next) => {
 
 exports.submitSearch = (req, res, next) => {
   const { uid, tid, searchType, searchStatus } = req.query;
-  const sql = `select role from omega_users where uid = ${uid} and role in (2,3)`;
+  const sql = `select role from omega_grant where uid = ${uid} and role in (2,3)`;
   console.log(db.escape(searchStatus));
   db.query(sql, (err, result) => {
     if (err) return next(err);
@@ -143,14 +143,15 @@ exports.submitDelete = (req, res, next) => {
   });
 };
 exports.gatherItemAttribute = (req, res, next) => {
-  const { uid } = req.query;
-  const sql = `SELECT kind,responsiless FROM omega_applimit t1
-LEFT JOIN omega_users t2 ON t2.role = t1.protagonist
-WHERE uid = ${uid}`;
-  db.query(sql, (err, result) => {
-    if (err) return next(err);
-    res.cc(result, 0);
-  });
+  //   const { uid } = req.query;
+  //   const sql = `SELECT kind,responsiless FROM omega_applimit t1
+  // LEFT JOIN omega_users t2 ON t2.role = t1.protagonist
+  // WHERE uid = ${uid}`;
+  //   db.query(sql, (err, result) => {
+  //     if (err) return next(err);
+  //     res.cc(result, 0);
+  //   });
+  res.cc("没用了这个接口");
 };
 exports.submitDetail = (req, res, next) => {
   const { target } = req.query;

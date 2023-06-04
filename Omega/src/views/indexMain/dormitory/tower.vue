@@ -89,12 +89,6 @@
                   text
                   class="button"
                   @click="setDialogRef?.floorDialog(o.tname)"
-                  >详情</el-button
-                >
-                <el-button
-                  text
-                  class="button"
-                  @click="setDialogRef?.floorDialog(o.tname)"
                   >编辑</el-button
                 >
               </div>
@@ -106,6 +100,7 @@
   </div>
   <AddDialog ref="addDialogRef" :update-data="fetchTower"></AddDialog>
   <SetDialog ref="setDialogRef"></SetDialog>
+  <ChartDrawer ref="chartDrawerRef"></ChartDrawer>
 </template>
 
 <script lang="tsx" setup>
@@ -115,7 +110,7 @@ import { reactive, ref } from "vue";
 import { useRoute } from "vue-router";
 import AddDialog from "custom/flatTable/addDialog.vue";
 import SetDialog from "custom/flatTable/setDialog.vue";
-import ChartDrawer from "custom/roomTable/chartDrawer.vue";
+import ChartDrawer from "custom/flatTable/chartDrawer.vue";
 import type { Column, ElRow } from "element-plus";
 const addDialogRef = ref<InstanceType<typeof AddDialog>>();
 const setDialogRef = ref<InstanceType<typeof SetDialog>>();

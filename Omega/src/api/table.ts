@@ -73,12 +73,12 @@ export function addRoom(data: object) {
     data
   })
 }
-export function useRoom(data: number) {
+export function useRoom(data: number,flat:string) {
   return service({
     url: "/room/use",
     method: "post",
     data: {
-      rid:data
+      rid:data,flat
     }
   })
 }
@@ -221,6 +221,21 @@ export function chumRuin(target: number) {
   return service({
     url: "/chum/ruin",
     method: "post",
+    data: {
+      target
+    }
+  })
+}
+export function orderUser() {
+    return service({
+        url: "/order/user",
+        method:'get'
+    })
+}
+export function deleteUser(target:number) {
+  return service({
+    url: "/user/delete",
+    method: 'post',
     data: {
       target
     }

@@ -124,7 +124,7 @@ exports.login = (req, res, next) => {
       if (err) return next(err);
       const permission = results.map((item) => `${item.uid}:${item.CODE}`);
       const sql = `SELECT kind,responsiless FROM omega_applimit t1
-                  LEFT JOIN omega_users t2 ON t2.role = t1.protagonist
+                  LEFT JOIN omega_grant t2 ON t2.role = t1.protagonist
                   WHERE uid = ${uid}`;
       db.query(sql, (err, result) => {
         if (err) return next(err);
@@ -283,11 +283,16 @@ exports.portrait = (req, res, next) => {
 };
 exports.cure = (req, res, next) => {
   const { uid } = req.query;
-  const sql = `SELECT user_pic,telephone,t4.call ,gender,sid,sname,tname,rid,census,birth
+  const sql = `SELECT user_pic,telephone,t6.call ,gender,sid,sname,tname,rid,census,birth
               FROM omega_users t1
               LEFT JOIN omega_students t2 ON t1.uid = t2.uid
               LEFT JOIN omega_tower t3 ON t2.tid = t3.tid
-              LEFT JOIN omega_role t4 ON t1.role = t4.role
+              LEFT JOIN (
+              SELECT t4.uid,t5.*
+              FROM omega_grant t4
+              JOIN omega_role t5 ON t4.role = t5.role
+              WHERE t4.uid = ${uid}
+                        )t6 ON t1.role = t6.role
               WHERE t1.uid = ${uid}`;
   db.query(sql, (err, result) => {
     if (err) return next(err);

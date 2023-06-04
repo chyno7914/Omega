@@ -25,4 +25,6 @@ router.get("/room/gather", tableHandler.roomGather);
 router.get("/bed/gather", tableHandler.bedGather);
 router.post("/order/change", tableHandler.orderChange);
 router.post("/chum/ruin", tableHandler.chumRuin);
+router.get("/order/user", tableHandler.orderUser);
+router.post("/user/delete", tableHandler.userDelete);
 module.exports = router;
