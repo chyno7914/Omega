@@ -20,7 +20,6 @@ router.beforeEach((to, from, next) => {
     }
     if (to.path.split('/').includes('apply')) {
         const { id } = to.query
-        console.log(2);
         if (typeof id =='string') {
             (async() => {
                 const {

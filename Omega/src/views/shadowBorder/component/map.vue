@@ -148,7 +148,7 @@ console.log(dataList);
 
 <style scoped>
 #map {
-  height: 900px;
-  width: 900px;
+  height: 700px;
+  width: 700px;
 }
 </style>

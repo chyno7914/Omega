@@ -3,7 +3,7 @@
   <el-dialog
     v-model="dialogFormVisible"
     title="添加数据"
-    width="40%"
+    width="50%"
     lock-scroll
   >
     <el-form

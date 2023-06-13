@@ -3,7 +3,7 @@
     <div class="filter-container">
       <el-input
         placeholder="学号"
-        style="width: 160px"
+        style="width: 9%"
         class="filter-item"
         v-model="searchList.sid"
         :formatter="(value:string) => value.replace(/[^\d]/g, '')"
@@ -11,7 +11,7 @@
       />
       <el-input
         placeholder="姓名"
-        style="width: 160px"
+        style="width: 9%"
         class="filter-item"
         v-model="searchList.sname"
         :formatter="(value:string) => value.replace(/[^\u4e00-\u9fa5a-zA-Z_]/g, '')"
@@ -24,12 +24,12 @@
         v-limit-elsearch="'searchFlat:limit'"
         placeholder="公寓"
         class="filter-item"
-        style="width: 160px"
+        style="width: 9%"
         clearable
       />
       <el-input
         placeholder="房间"
-        style="width: 160px"
+        style="width: 9%"
         class="filter-item"
         v-model="searchList.room"
         v-limit-elsearch="'searchRoom:limit'"
@@ -42,7 +42,7 @@
         :options="majorsOptions"
         placeholder="专业"
         class="filter-item"
-        style="width: 240px"
+        style="width: 12%"
         multiple
         collapse-tags
         clearable
@@ -53,7 +53,7 @@
         :options="gradesOptions"
         placeholder="年级"
         class="filter-item"
-        style="width: 179px"
+        style="width:12%"
         multiple
         collapse-tags
         clearable
@@ -64,12 +64,12 @@
         :options="classesOptions"
         placeholder="班级"
         class="filter-item"
-        style="width: 179px"
+        style="width: 10%"
         multiple
         collapse-tags
         clearable
       />
-      <el-button class="filter-item" type="primary" style="" @click="fetchChum">
+      <el-button class="filter-item" type="primary" style="" @click="fetchChum" size="small">
         <span style="margin-left: 5px"> 查找</span>
       </el-button>
       <el-button
@@ -77,10 +77,11 @@
         type="primary"
         v-has-show="'chum:append'"
         @click="addDialogRef?.addDialog()"
+        size="small"
       >
         添加
       </el-button>
-      <el-button class="filter-item" type="primary" @click="exportHandler">
+      <el-button class="filter-item" type="primary" @click="exportHandler" size="small">
         导出
       </el-button>
       <el-switch
@@ -88,6 +89,7 @@
         class="mb-2"
         active-text="退寝用户"
         style="margin-left: 10px"
+        size="small"
       />
     </div>
     <el-table
@@ -95,59 +97,59 @@
       fit
       highlight-current-row
       style="width: 100%"
-      max-height="800px"
+      max-height="600px"
       :data="chumData"
     >
-      <el-table-column label="学号" prop="sid" align="center" width="150">
+      <el-table-column label="学号" prop="sid" align="center" width="100">
         <template #default="scope: any">
           <div style="align-items: center">
             <span style="text-align: center">{{ scope.row.sid }}</span>
           </div>
         </template>
       </el-table-column>
-      <el-table-column label="姓名" width="150px" align="center">
+      <el-table-column label="姓名" width="100" align="center">
         <template #default="scope: any">
           <div style="align-items: center">
             <span style="text-align: center">{{ scope.row.sname }}</span>
           </div>
         </template>
       </el-table-column>
-      <el-table-column label="公寓" width="150px" align="center">
+      <el-table-column label="公寓" width="100" align="center">
         <template #default="scope: any">
           <div style="align-items: center">
             <span style="text-align: center">{{ scope.row.tname }}</span>
           </div>
         </template>
       </el-table-column>
-      <el-table-column label="房间" width="150px" align="center">
+      <el-table-column label="房间" width="100" align="center">
         <template #default="scope: any">
           <div style="align-items: center">
             <span style="text-align: center">{{ scope.row.rid }}</span>
           </div>
         </template>
       </el-table-column>
-      <el-table-column label="床位" width="150px" align="center">
+      <el-table-column label="床位" width="70" align="center">
         <template #default="scope: any">
           <div style="align-items: center">
             <span style="text-align: center">{{ scope.row.bid }}</span>
           </div>
         </template>
       </el-table-column>
-      <el-table-column label="专业" align="center" width="150">
+      <el-table-column label="专业" align="center" width="140">
         <template #default="scope: any">
           <div style="align-items: center">
             <span style="text-align: center">{{ scope.row.major }}</span>
           </div>
         </template>
       </el-table-column>
-      <el-table-column label="年级" align="center" width="150">
+      <el-table-column label="年级" align="center" width="120">
         <template #default="scope: any">
           <div style="align-items: center">
             <span style="text-align: center">{{ scope.row.grade }}</span>
           </div>
         </template>
       </el-table-column>
-      <el-table-column label="班级" align="center" width="150">
+      <el-table-column label="班级" align="center" width="70">
         <template #default="scope: any">
           <div style="align-items: center">
             <span style="text-align: center">{{ scope.row.class }}</span>
@@ -183,7 +185,7 @@
         class-name="small-padding fixed-width"
       >
         <template #default="scope: any">
-          <el-button size="small" @click="">信息</el-button>
+          <el-button size="small" @click="cardDialogRef?.showDialog(scope.row.sid)">信息</el-button>
           <el-button
             size="small"
             @click="setLeave(scope.row.sid)"
@@ -249,6 +251,7 @@
   </div>
   <AddDialog :fetchChum="fetchChum" ref="addDialogRef"></AddDialog>
   <ChangeDialog :fetchChum="fetchChum" ref="changeDialogRef"></ChangeDialog>
+  <CardDialog ref="cardDialogRef"></CardDialog>
 </template>
 
 <script lang="ts" setup>
@@ -267,6 +270,7 @@ import { useRoute } from "vue-router";
 import { exportExcel } from "@/utils/exportExcel";
 import AddDialog from "custom/chumTable/addDialog.vue";
 import ChangeDialog from "custom/chumTable/changeDialog.vue";
+import CardDialog from "custom/chumTable/cardDialog.vue";
 import { ElMessageBox, ElMessage } from "element-plus";
 const Hermes = useHermesStore();
 const Demeter = useDemeterStore();
@@ -274,6 +278,7 @@ const Zeus = useZeusStore();
 const route = useRoute();
 const addDialogRef = ref<InstanceType<typeof AddDialog>>();
 const changeDialogRef = ref<InstanceType<typeof ChangeDialog>>();
+const cardDialogRef = ref<InstanceType<typeof CardDialog>>();
 let currentPage = ref(1);
 let pageSize = ref(20);
 let total = ref(0);

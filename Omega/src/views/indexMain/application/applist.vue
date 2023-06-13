@@ -136,7 +136,7 @@
                             type="success"
                             style="float: right"
                             v-has-show="'applyList:revocation'"
-                            v-if="item.status == 'checking'"
+                            v-show="item.status == 'checking'"
                             @click="toRevocation(item.applId, `撤回`)"
                             >撤回</el-button
                           >
@@ -145,7 +145,7 @@
                             type="success"
                             style="float: right"
                             v-has-show="'applyList:repulse'"
-                            v-show="item.status == 'chacking'"
+                            v-show="item.status == 'checking'"
                             @click="toRevocation(item.applId, `打回`)"
                             >打回</el-button
                           >
@@ -225,7 +225,7 @@
           </el-col>
         </el-scrollbar>
       </el-main>
-      <el-aside width="300px" style="" class="aside">
+      <el-aside width="20%" style="" class="aside">
         <el-scrollbar>
           <el-col style="margin-top: 20%">
             <el-row style="height: 50px">

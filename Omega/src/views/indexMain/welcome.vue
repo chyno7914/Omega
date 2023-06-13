@@ -51,7 +51,7 @@ export default {};
   background-repeat: no-repeat;
   background-size: cover;
   background-attachment: fixed;
-  background-position: 0 -125px;
+  background-position: 0 -52;
   margin-left: -9px;
 }
 .welcome-info {

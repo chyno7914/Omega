@@ -79,31 +79,31 @@
       fit
       highlight-current-row
       style="width: 100%"
-      max-height="800px"
+      max-height="600px"
       :data="roomData"
     >
-      <el-table-column label="公寓" width="280" align="center">
+      <el-table-column label="公寓" width="200" align="center">
         <template #default="scope: any">
           <div style="align-items: center">
             <span style="text-align: center">{{ scope.row.tname }}</span>
           </div>
         </template>
       </el-table-column>
-      <el-table-column label="房间号" width="280px" align="center">
+      <el-table-column label="房间号" width="200" align="center">
         <template #default="scope: any">
           <div style="align-items: center">
             <span style="text-align: center">{{ scope.row.rid }}</span>
           </div>
         </template>
       </el-table-column>
-      <el-table-column label="总床位" width="280px" align="center">
+      <el-table-column label="总床位" width="200" align="center">
         <template #default="scope: any">
           <div style="align-items: center">
             <span style="text-align: center">{{ scope.row.tol_bed }}</span>
           </div>
         </template>
       </el-table-column>
-      <el-table-column label="已用床位" align="center" width="280">
+      <el-table-column label="已用床位" align="center" width="200">
         <template #default="scope: any">
           <div style="align-items: center">
             <span style="text-align: center">{{ scope.row.use_bed }}</span>

@@ -3,7 +3,7 @@
   <el-dialog
     v-model="dialogFormVisible"
     title="修改密码"
-    width="35%"
+    width="50%"
     lock-scroll
     align-center
     :before-close="handleClose"

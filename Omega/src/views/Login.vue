@@ -115,17 +115,17 @@ const loginFormRef = ref<FormInstance>();
 const regFormRef = ref<FormInstance>();
 const router = useRouter();
 const loginForm = reactive({
-  username: "admin",
-  password: "123456",
+  username: "",
+  password: "",
 });
 const regForm = reactive({
-  username: "user",
-  password: "123456",
-  confirm: "123456",
+  username: "",
+  password: "",
+  confirm: "",
   role: null,
   tcode: "",
   sid: null,
-  telephone: "12345678910",
+  telephone: "",
 });
 const passwordCheck = (rule: any, value: any, callback: any) => {
   if (value === "") {

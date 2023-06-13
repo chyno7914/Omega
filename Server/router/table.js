@@ -27,4 +27,5 @@ router.post("/order/change", tableHandler.orderChange);
 router.post("/chum/ruin", tableHandler.chumRuin);
 router.get("/order/user", tableHandler.orderUser);
 router.post("/user/delete", tableHandler.userDelete);
+router.get("/user/link", tableHandler.userLink);
 module.exports = router;

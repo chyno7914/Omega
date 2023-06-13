@@ -15,7 +15,7 @@
         padding: 5px;
         background-color: #f5f5f5;
         box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
-        height: 750px;
+        height: 650px;
         width: 100%;
       "
     >

@@ -19,7 +19,7 @@
 
 .box {
   position: relative;
-  min-height: 99%;
+  min-height: 95vh;
   width: 100%;
   margin-left: 9px;
   background-color: #fff;

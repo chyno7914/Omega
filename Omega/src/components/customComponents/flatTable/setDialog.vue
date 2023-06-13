@@ -21,17 +21,17 @@
       fit
       :row-class-name="tableRowClassName"
     >
-      <el-table-column prop="floor" label="楼层" width="150" align="center" />
+      <el-table-column prop="floor" label="楼层" width="80" align="center" />
       <el-table-column
         prop="max_room"
         label="上限"
-        width="150"
+        width="100"
         align="center"
       />
       <el-table-column
         prop="use_room"
         label="已用"
-        width="150"
+        width="80"
         align="center"
       />
       <el-table-column label="状态" width="100" align="center">

@@ -241,3 +241,10 @@ export function deleteUser(target:number) {
     }
   })
 }
+export function linkUser(target:number) {
+  return service({
+    url:"/user/link",
+    method:'get',
+    params:{target:target}
+  });
+}

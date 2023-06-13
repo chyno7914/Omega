@@ -3,7 +3,7 @@
   <el-dialog
     v-model="dialogFormVisible"
     title="修改数据"
-    width="30%"
+    width="40%"
     lock-scroll
     destroy-on-close
   >
@@ -16,7 +16,7 @@
       :hide-required-asterisk="true"
     >
       <el-form-item label="使用床位：" prop="useBed">
-        <el-input v-model="changeForm.useBed" disabled />
+        <el-input v-model="changeForm.useBed" disabled style="width: 70%;"/>
       </el-form-item>
       <el-form-item label="房间容量：" prop="tolBed">
         <el-input-number v-model="changeForm.tolBed" :min="changeForm.useBed" />

@@ -11,21 +11,21 @@
       }"
     >
       >
-      <el-table-column label="学号" width="" align="center">
+      <el-table-column label="学号" width="100px" align="center">
         <template #default="scope: { row: DataType }">
           <div style="align-items: center">
             <span style="text-align: center">{{ scope.row.sid }}</span>
           </div>
         </template>
       </el-table-column>
-      <el-table-column label="姓名" width="" align="center">
+      <el-table-column label="姓名" width="80px" align="center">
         <template #default="scope: { row: DataType }">
           <div style="align-items: center">
             <span style="text-align: center">{{ scope.row.sname }}</span>
           </div>
         </template>
       </el-table-column>
-      <el-table-column label="性别" width="" align="center">
+      <el-table-column label="性别" width="60px" align="center">
         <template #default="scope: { row: DataType }">
           <div style="align-items: center">
             <el-icon>
@@ -38,7 +38,7 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column label="生源地" align="center" width="">
+      <el-table-column label="生源地" align="center" width="100px">
         <template #default="scope: { row: DataType }">
           <div style="align-items: center">
             <span style="text-align: center">{{ scope.row.census }}</span>
@@ -65,21 +65,21 @@
         :data="dataList"
         class="bottom-table"
       >
-        <el-table-column label="学号" width="" align="center">
+        <el-table-column label="学号" width="100px" align="center">
           <template #default="scope: { row: DataType }">
-            <div style="align-items: center">
-              <span style="text-align: center">{{ scope.row.sid }}</span>
+            <div style="">
+              <span style="">{{ scope.row.sid }}</span>
             </div>
           </template>
         </el-table-column>
-        <el-table-column label="姓名" width="" align="center">
+        <el-table-column label="姓名" width="80px" align="center">
           <template #default="scope: { row: DataType }">
             <div style="align-items: center">
               <span style="text-align: center">{{ scope.row.sname }}</span>
             </div>
           </template>
         </el-table-column>
-        <el-table-column label="性别" width="" align="center">
+        <el-table-column label="性别" width="60px" align="center">
           <template #default="scope: { row: DataType }">
             <div style="align-items: center">
               <el-icon>
@@ -92,7 +92,7 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column label="生源地" align="center" width="">
+        <el-table-column label="生源地" align="center" width="100px">
           <template #default="scope: { row: DataType }">
             <div style="align-items: center">
               <span style="text-align: center">{{ scope.row.census }}</span>
@@ -143,8 +143,6 @@ fetchData();
 }
 .element {
   background-color: rgba(255, 255, 255, 0.5); /* 白色半透明背景 */
-}
-.user_skills /deep/ .el-table--fit {
 }
 .user_skills /deep/ .el-table,
 .el-table__expanded-cell {

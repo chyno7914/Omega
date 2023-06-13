@@ -67,7 +67,7 @@ const fetchData = async () => {
 
 <style scoped>
 #majorRoll {
-  height: 700px;
-  width: 700px;
+  height: 300px;
+  width: 300px;
 }
 </style>

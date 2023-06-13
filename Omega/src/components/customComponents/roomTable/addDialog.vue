@@ -3,7 +3,7 @@
   <el-dialog
     v-model="dialogFormVisible"
     title="添加房间"
-    width="40%"
+    width="50%"
     lock-scroll
     destroy-on-close
   >
@@ -16,7 +16,7 @@
       class="demo-ruleForm"
       :hide-required-asterisk="true"
     >
-      <el-col :span="12">
+      <el-col :span="20">
         <el-form-item label="公寓" prop="flat">
           <el-select-v2
             v-model="roomForm.flat"
@@ -29,7 +29,7 @@
           />
         </el-form-item>
       </el-col>
-      <el-col :span="12">
+      <el-col :span="20">
         <el-form-item label="楼层" prop="floor">
           <el-select-v2
             v-model="roomForm.floor"
@@ -42,7 +42,7 @@
           />
         </el-form-item>
       </el-col>
-      <el-col :span="12">
+      <el-col :span="20">
         <el-form-item label="床位数量" prop="tol_bed">
           <el-input-number
             v-model="roomForm.tol_bed"
@@ -53,7 +53,7 @@
           </el-input-number>
         </el-form-item>
       </el-col>
-      <el-col :span="12">
+      <el-col :span="20">
         <el-form-item label="数量" prop="tolly">
           <el-input-number v-model="roomForm.tally" min="1" />
         </el-form-item>

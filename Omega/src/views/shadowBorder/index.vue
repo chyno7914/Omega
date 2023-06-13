@@ -2,29 +2,41 @@
   <div class="common-layout">
     <el-container>
       <el-header>
-        <el-row :gutter="20">
-          <el-col :span="4"><div class="grid-content one" /> </el-col>
-          <el-col :span="8"
-            ><div class="grid-content two" />
-            2</el-col
-          >
-        </el-row>
+        <el-row :gutter="20" align="middle">
+  <el-col :span="8">
+    <el-page-header
+      @back="router.back()"
+      style="margin: auto"
+      title="返回"
+    >
+      <template #content>
+        <span class="text-large font-600 mr-3"> 数据面板 </span>
+      </template>
+    </el-page-header>
+  </el-col>
+  <el-col :span="8">
+    <div class="grid-content two"/>
+  </el-col>
+</el-row>
       </el-header>
       <el-main>
         <el-row class="borderMain">
-          <el-col :span="6" class="leftCol">
+          <el-col :span="5" class="leftCol">
             <el-row class="leftTop">
               <Broad></Broad>
             </el-row>
             <el-row class="leftBottom">
-              <MajorRoll></MajorRoll>
+              
             </el-row>
           </el-col>
           <el-col :span="12" class="centerCol">
             <Map></Map>
           </el-col>
           <el-col :span="6" class="rightCol">
-            <!-- <el-row class="rightTop"></el-row> -->
+            <el-row class="rightTop"><MajorRoll></MajorRoll></el-row>
+            <el-row>
+              
+            </el-row>
             <UserList></UserList>
           </el-col>
         </el-row>
@@ -38,18 +50,20 @@ import Broad from "./component/broad.vue";
 import MajorRoll from "./component/majorRoll.vue";
 import Map from "./component/map.vue";
 import UserList from "./component/userList.vue";
+import { useRouter } from "vue-router";
+const router = useRouter()
 </script>
 
 <style scoped>
 .common-layout {
-  background-image: url("assets/img/backgrund5.jpg");
+  background-image: url("assets/img/border.webp");
   background-repeat: no-repeat;
   background-size: cover;
   background-attachment: fixed;
-  background-position: 0 -125px;
+  background-position: 0 -28px;
 }
 .el-header {
-  background-color: skyblue;
+  color: skyblue;
 }
 .el-main {
   height: 100%;

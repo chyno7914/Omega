@@ -7,8 +7,9 @@
       </span>
       <template #dropdown>
         <el-dropdown-menu>
-          <el-dropdown-item @click="">个人中心</el-dropdown-item>
-          <el-dropdown-item divided @click="outWeb">安全退出</el-dropdown-item>
+          <el-dropdown-item @click="toSet()">个人中心</el-dropdown-item>
+          <el-dropdown-item @click="toWelcome()" ><div style="text-align: center;width: 100%;">首页</div></el-dropdown-item>
+          <el-dropdown-item divided @click="outWeb()">安全退出</el-dropdown-item>
         </el-dropdown-menu>
       </template>
     </el-dropdown>
@@ -28,6 +29,14 @@ const outWeb = () => {
     message: "安全退出",
     type: "success",
   });
+};
+const toWelcome = () => {
+  Zeus.token = "";
+  router.push("/welcome");
+};
+const toSet = () => {
+  Zeus.token = "";
+  router.push("/set");
 };
 const state = reactive({
   circleUrl:
