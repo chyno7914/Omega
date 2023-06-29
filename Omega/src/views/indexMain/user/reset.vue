@@ -224,7 +224,10 @@ const changeUsername = async (formEl: FormInstance | undefined) => {
         message: message,
         type: status ? "error" : "success",
       });
-      if (!status) justUsername.alpha = justUsername.omega;
+      if (!status) {
+        justUsername.alpha = justUsername.omega
+        Zeus.username = justUsername.omega
+      };
       // });
     }
   });
@@ -258,6 +261,8 @@ const enterChange = (formEl: FormInstance | undefined) => {
   enterType.value = !enterType.value;
   resetForm(formEl);
 };
+console.log(Zeus.username);
+
 initData();
 </script>
 

@@ -12,19 +12,31 @@ exports.permission = (req, res, next) => {
     db.query(sql, [proven.uid], (err, results) => {
       if (err) return next(err);
       const menu = results;
-      const sql = "select username from omega_users where uid = ?";
-
+      const sql = `select username,t2.role
+                  from omega_users t1
+                  join omega_grant t2 on t1.uid = t2.uid
+                  where t1.uid = ${proven.uid}`;
       db.query(sql, proven.uid, (err, results) => {
         if (err) return next(err);
         const username = results[0].username;
+        const role = results[0].role;
         if (err) return next(err);
+        const sql = `SELECT uid,CODE FROM omega_grant
+                    RIGHT JOIN omega_order ON omega_grant.role = omega_order.role
+                    WHERE uid = ${proven.uid}`;
+        db.query(sql, (err, results) => {
+        if (err) return next(err);
+        const permission = results.map((item) => `${item.uid}:${item.CODE}`);
         res.send({
           status: 0,
           message: "校验成功",
           route: route,
           menu: menu,
+          role,
           username,
+          permission
         });
+      })
       });
     });
   });

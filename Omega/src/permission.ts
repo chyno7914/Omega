@@ -42,6 +42,8 @@ router.beforeEach((to, from, next) => {
         permissionConfirm().then((res) => {
             Zeus.hasTokenFlag = !res.data.status        
             Zeus.username = res.data.username
+            Zeus.role = res.data.role
+            Zeus.permission = res.data.permission
             Astraea.route = res.data.route
             Astraea.menu = res.data.menu
             if (Zeus.hasTokenFlag) {

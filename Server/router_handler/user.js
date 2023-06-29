@@ -283,17 +283,17 @@ exports.portrait = (req, res, next) => {
 };
 exports.cure = (req, res, next) => {
   const { uid } = req.query;
-  const sql = `SELECT user_pic,telephone,t6.call ,gender,sid,sname,tname,rid,census,birth
-              FROM omega_users t1
-              LEFT JOIN omega_students t2 ON t1.uid = t2.uid
-              LEFT JOIN omega_tower t3 ON t2.tid = t3.tid
-              LEFT JOIN (
-              SELECT t4.uid,t5.*
-              FROM omega_grant t4
-              JOIN omega_role t5 ON t4.role = t5.role
-              WHERE t4.uid = ${uid}
-                        )t6 ON t1.role = t6.role
-              WHERE t1.uid = ${uid}`;
+  const sql = `SELECT t1.user_pic, t1.telephone, t6.call, gender, t2.sid, t2.sname, t3.tname, t2.rid, t2.census, t2.birth
+  FROM omega_users t1
+  LEFT JOIN omega_students t2 ON t1.uid = t2.uid
+  LEFT JOIN omega_tower t3 ON t2.tid = t3.tid
+  LEFT JOIN (
+      SELECT t4.uid, t5.call
+      FROM omega_grant t4
+      JOIN omega_role t5 ON t4.role = t5.role
+      WHERE t4.uid = ${uid}
+  ) t6 ON t1.uid = t6.uid
+  WHERE t1.uid = ${uid};`;
   db.query(sql, (err, result) => {
     if (err) return next(err);
     console.log(result[0]);

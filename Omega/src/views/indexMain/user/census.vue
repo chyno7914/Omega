@@ -21,9 +21,9 @@
           </el-form-item>
         </el-col>
         <el-row>
-          <el-col :span="5">
+          <el-col :span="6">
             <el-form-item label="性别" prop="gender">
-              <el-radio-group v-model="censusForm.gender" class="ml-4">
+              <el-radio-group v-model="censusForm.gender">
                 <el-radio label="1">男</el-radio>
                 <el-radio label="0">女</el-radio>
               </el-radio-group>
@@ -180,7 +180,7 @@ const submitCensus = async (formEl: FormInstance | undefined) => {
   if (!formEl) return;
   await formEl.validate((valid) => {
     if (valid) {
-      // alert(new Date(censusForm.birth));
+      alert(new Date(censusForm.birth));
       census(censusForm).then((res) => {
         ElMessage({
           message: res.data.status
